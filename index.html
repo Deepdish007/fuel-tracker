@@ -224,12 +224,11 @@ input::placeholder{color:var(--muted);}
 .input-row-3{grid-template-columns:1fr 1fr 1fr;}
 .input-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;}
 
-/* ══ BUTTONS ══ */
-.btn{display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;}
+/* ══ BUTTONS — all have active feedback ══ */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;transition:transform .12s,filter .12s,background .15s;-webkit-user-select:none;user-select:none;}
+.btn:active{transform:scale(.93);filter:brightness(.8);}
 .btn-primary{background:var(--accent);color:#0d0d0d;}
 .btn-water{background:var(--water);color:#0a1520;}
-.btn-water:active{transform:scale(.98);}
-.btn-primary:active{transform:scale(.98);}
 .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
 .btn-ghost:hover{border-color:var(--border2);}
 .btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #3a1414;}
@@ -298,20 +297,43 @@ input::placeholder{color:var(--muted);}
 .day-edit-food-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
 .day-edit-food-item:last-child{border-bottom:none;}
 
-/* ══ MISC ══ */
-.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0d0d0d;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:600;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
-.toast.show{opacity:1;}
-.empty-state{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;}
-.empty-icon{font-size:36px;margin-bottom:10px;opacity:.4;}
-.history-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;line-height:1;flex-shrink:0;}
-.history-edit-btn:hover{color:var(--accent);}
-@keyframes slideUp{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.slide-up{animation:slideUp .22s ease;}
+/* ══ BUTTON PRESS FEEDBACK ══ */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:var(--radius-sm);padding:11px 16px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;-webkit-user-select:none;user-select:none;}
+.btn:active{transform:scale(.94);filter:brightness(.85);}
+.btn-primary{background:var(--accent);color:#0d0d0d;}
+.btn-water{background:var(--water);color:#0a1520;}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid #3a1414;}
+.btn-full{width:100%;}
+.btn-sm{padding:7px 12px;font-size:12px;}
+.btn-xs{padding:4px 8px;font-size:11px;}
+.bottle-chip:active,.meal-row:active,.bar-col:active,.history-day:active,.week-nav-btn:active{transform:scale(.96);filter:brightness(.8);}
+.food-action:active,.meal-group-del:active,.meal-group-header:active{transform:scale(.88);filter:brightness(.7);}
+.creatine-card:active{transform:scale(.98);filter:brightness(.85);}
+.app-switch-btn:active{transform:scale(.93);}
+
+/* ══ UNDO TOAST ══ */
+.undo-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:10px 8px 10px 16px;font-size:13px;z-index:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+.undo-toast.show{opacity:1;pointer-events:auto;}
+.undo-btn{background:var(--accent);color:#0d0d0d;border:none;border-radius:16px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;}
+.undo-btn:active{transform:scale(.94);}
+
+/* ══ WATER ENTRY EDIT INLINE ══ */
+.water-log-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.water-log-item:last-child{border-bottom:none;}
+.water-log-icon{font-size:16px;}
+.water-log-info{flex:1;}
+.water-log-amount{font-size:13px;color:var(--water);font-weight:500;}
+.water-log-time{font-size:10px;color:var(--muted);margin-top:1px;}
 </style>
 </head>
 <body>
 
 <div id="toast" class="toast"></div>
+<div id="undo-toast" class="undo-toast">
+  <span id="undo-msg"></span>
+  <button class="undo-btn" onclick="undoDelete()">Undo</button>
+</div>
 
 <!-- ════════════ APP SWITCHER ════════════ -->
 <div class="app-switcher">
@@ -382,7 +404,7 @@ input::placeholder{color:var(--muted);}
   <!-- FUEL HISTORY -->
   <div id="fuel-tab-history" class="tab-panel">
     <div class="page-header">
-      <div><div class="page-title">HISTORY</div><div class="page-subtitle">calories &amp; creatine</div></div>
+      <div><div class="page-title">HISTORY</div><div class="page-subtitle">calories &amp; macronutrients</div></div>
     </div>
     <div class="stats-grid">
       <div class="stat-card"><div id="stat-weekly" class="stat-val" style="color:var(--accent)">—</div><div class="stat-lbl">7-day avg</div><div id="stat-weekly-diff" class="stat-diff"></div></div>
@@ -510,7 +532,7 @@ input::placeholder{color:var(--muted);}
   <!-- WATER HISTORY -->
   <div id="water-tab-history" class="tab-panel">
     <div class="page-header">
-      <div><div class="page-title">HISTORY</div><div class="page-subtitle">hydration journey</div></div>
+      <div><div class="page-title">HISTORY</div><div class="page-subtitle">water &amp; creatine</div></div>
     </div>
     <div class="stats-grid">
       <div class="stat-card"><div id="w-stat-7" class="stat-val" style="color:var(--water)">—</div><div class="stat-lbl">7-day avg</div><div id="w-stat-7-diff" class="stat-diff"></div></div>
@@ -727,8 +749,49 @@ input::placeholder{color:var(--muted);}
   </div>
 </div>
 
-<!-- Water Day Detail (click bar) -->
-<div id="modal-water-day" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-water-day')">
+<!-- Edit Water Entry -->
+<div id="modal-edit-water" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-edit-water')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--water)">edit water entry</div>
+    <div class="input-row"><div class="input-lbl" id="ewi-amount-lbl">amount (ml)</div><input type="number" id="ewi-amount" placeholder="e.g. 500" min="1" step="1"></div>
+    <div class="input-row" style="margin-bottom:14px;"><div class="input-lbl">note (optional)</div><input type="text" id="ewi-note" placeholder="e.g. morning glass"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-danger btn-xs" onclick="deleteWaterEntryFromModal()">delete</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-edit-water')">cancel</button>
+      <button class="btn btn-water" style="flex:2" onclick="saveEditedWaterEntry()">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Water Entry (Past Day) -->
+<div id="modal-edit-water-past" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-edit-water-past')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--water)">edit water entry</div>
+    <div class="input-row"><div class="input-lbl" id="ewp-amount-lbl">amount (ml)</div><input type="number" id="ewp-amount" placeholder="e.g. 500" min="1" step="1"></div>
+    <div class="input-row" style="margin-bottom:14px;"><div class="input-lbl">note (optional)</div><input type="text" id="ewp-note" placeholder="e.g. morning glass"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-danger btn-xs" onclick="deletePastWaterEntry()">delete</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-edit-water-past')">cancel</button>
+      <button class="btn btn-water" style="flex:2" onclick="savePastWaterEntry()">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Water Day Edit (history) -->
+<div id="modal-water-day-edit" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-water-day-edit')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="modal-title" id="water-day-edit-title" style="margin:0;color:var(--water)"></div>
+      <button class="btn btn-ghost btn-xs" onclick="addWaterEntryToPastDay()">+ add</button>
+    </div>
+    <div id="water-day-edit-summary" style="font-size:12px;color:var(--muted);margin-bottom:14px;"></div>
+    <div id="water-day-edit-list"></div>
+    <div style="margin-top:16px;"><button class="btn btn-ghost btn-full" onclick="closeModal('modal-water-day-edit')">done</button></div>
+  </div>
+</div>
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title" id="water-day-title"></div>
@@ -756,7 +819,11 @@ let db=loadDB();
 function fmtKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function todayKey(){return fmtKey(new Date());}
 function uid(){return'id'+Date.now()+Math.random().toString(36).slice(2,6);}
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderFuelToday();
+
 
 function getFuelDay(k){if(!db.fuel.days[k])db.fuel.days[k]={items:[]};return db.fuel.days[k];}
 function getWaterDay(k){if(!db.water.days[k])db.water.days[k]={entries:[],creatineTaken:false,creatineDose:null};return db.water.days[k];}
@@ -895,8 +962,20 @@ function renderFoodLog(){
   }).join('');
 }
 function toggleGroup(id){const el=document.getElementById(id),ch=document.getElementById('chev_'+id);el.classList.toggle('hidden');ch.classList.toggle('open');}
-function deleteFoodItem(key,idx){db.fuel.days[key].items.splice(idx,1);saveDB();renderFuelToday();showToast('item removed');}
-function deleteMealGroup(key,gid){db.fuel.days[key].items=db.fuel.days[key].items.filter(it=>it.mealGroup?.groupId!==gid);saveDB();renderFuelToday();showToast('meal removed');}
+function deleteFoodItem(key,idx){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const name=db.fuel.days[key].items[idx].name;
+  db.fuel.days[key].items.splice(idx,1);
+  saveDB();renderFuelToday();
+  showUndoToast(`"${name}" removed`,()=>{db.fuel.days[key].items=snap;saveDB();renderFuelToday();});
+}
+function deleteMealGroup(key,gid){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const name=db.fuel.days[key].items.find(it=>it.mealGroup?.groupId===gid)?.mealGroup?.name||'meal';
+  db.fuel.days[key].items=db.fuel.days[key].items.filter(it=>it.mealGroup?.groupId!==gid);
+  saveDB();renderFuelToday();
+  showUndoToast(`"${name}" removed`,()=>{db.fuel.days[key].items=snap;saveDB();renderFuelToday();});
+}
 
 // ── EDIT TODAY ITEM ──
 let _editKey='',_editIdx=-1,_eiOvr=false;
@@ -1134,10 +1213,38 @@ function renderDayEditList(){
   document.getElementById('day-edit-totals').innerHTML=`<span style="color:${tot.cal>goal?'var(--red)':'var(--accent)'};">${Math.round(tot.cal).toLocaleString()} kcal</span> · P:${Math.round(tot.prot)}g C:${Math.round(tot.carbs)}g F:${Math.round(tot.fat)}g`;
   const list=document.getElementById('day-edit-list');
   if(!items.length){list.innerHTML='<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:13px;">no items — tap + add item</div>';return;}
-  list.innerHTML=items.map((it,i)=>`<div class="day-edit-food-item"><div style="flex:1;"><div style="font-size:13px;">${escHtml(it.name)}${it.mealGroup?` <span style="font-size:10px;color:var(--muted);">(${escHtml(it.mealGroup.name)})</span>`:''}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div style="font-size:13px;color:var(--accent);font-weight:500;margin-right:8px;">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${i})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${i})">×</button></div>`).join('');
+  // Group by mealGroup, preserving order of first appearance
+  const groups=[],gMap={};
+  items.forEach((it,i)=>{
+    const gid=it.mealGroup?.groupId||null;
+    if(gid){if(!gMap[gid]){gMap[gid]={type:'meal',name:it.mealGroup.name,gid,indices:[]};groups.push(gMap[gid]);}gMap[gid].indices.push(i);}
+    else groups.push({type:'solo',idx:i});
+  });
+  list.innerHTML=groups.map(g=>{
+    if(g.type==='solo'){const it=items[g.idx];return`<div class="day-edit-food-item"><div style="flex:1;"><div style="font-size:13px;">${escHtml(it.name)}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div style="font-size:13px;color:var(--accent);font-weight:500;margin-right:8px;">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${g.idx})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${g.idx})">×</button></div>`;}
+    // Meal group
+    const gc=g.indices.reduce((s,i)=>s+(items[i].cal||0),0);
+    const eid='ded_'+g.gid;
+    return`<div style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;overflow:hidden;">
+      <div style="display:flex;align-items:center;background:var(--surface2);padding:8px 10px;cursor:pointer;gap:8px;" onclick="toggleGroup('${eid}')">
+        <span style="font-size:12px;">⚡</span>
+        <span style="flex:1;font-size:12px;font-weight:500;color:var(--accent);">${escHtml(g.name)}</span>
+        <span style="font-size:12px;color:var(--accent);font-weight:500;">${Math.round(gc)} kcal</span>
+        <span class="meal-group-chevron" id="chev_${eid}">›</span>
+      </div>
+      <div class="meal-group-items hidden" id="${eid}" style="padding:0 10px;">
+        ${g.indices.map(i=>{const it=items[i];return`<div class="day-edit-food-item"><div style="flex:1;"><div style="font-size:13px;">${escHtml(it.name)}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div style="font-size:12px;color:var(--accent);font-weight:500;margin-right:8px;">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${i})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${i})">×</button></div>`;}).join('')}
+      </div>
+    </div>`;
+  }).join('');
 }
-function addItemToPastDay(){_pastAddMode=true;_pastAddKey=_dayEditKey;_fiOvr=false;['fi-name','fi-cal','fi-amount','fi-prot','fi-carbs','fi-fat'].forEach(id=>document.getElementById(id).value='');document.getElementById('fi-cal').className='';document.getElementById('fi-cal-badge').style.display='none';document.getElementById('fi-banner').innerHTML='enter amount + macros per 100g to auto-calculate calories';document.getElementById('fi-submit-btn').textContent='add to this day';openModal('modal-add-food');setTimeout(()=>document.getElementById('fi-name').focus(),80);}
-function delPastItemInline(key,idx){db.fuel.days[key].items.splice(idx,1);saveDB();renderDayEditList();renderFuelHistory();showToast('item removed');}
+function delPastItemInline(key,idx){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const name=db.fuel.days[key].items[idx].name;
+  db.fuel.days[key].items.splice(idx,1);
+  saveDB();renderDayEditList();renderFuelHistory();
+  showUndoToast(`"${name}" removed`,()=>{db.fuel.days[key].items=snap;saveDB();renderDayEditList();renderFuelHistory();});
+}
 let _piKey='',_piIdx=-1,_piOvr=false;
 function openPastItemEdit(key,idx){_piKey=key;_piIdx=idx;_piOvr=false;const it=db.fuel.days[key].items[idx];document.getElementById('past-item-title').textContent='edit: '+escHtml(it.name);document.getElementById('pi-name').value=it.name||'';document.getElementById('pi-amount').value=it.amountG||'';document.getElementById('pi-cal').value=it.cal?Math.round(it.cal):'';if(it.per100){document.getElementById('pi-prot').value=it.per100.prot||'';document.getElementById('pi-carbs').value=it.per100.carbs||'';document.getElementById('pi-fat').value=it.per100.fat||'';}else{document.getElementById('pi-prot').value='';document.getElementById('pi-carbs').value='';document.getElementById('pi-fat').value='';}document.getElementById('pi-cal-badge').style.display='none';document.getElementById('pi-cal').className='';recalcPastItem(false);openModal('modal-past-item');}
 function recalcPastItem(isC){if(isC){_piOvr=document.getElementById('pi-cal').value!=='';document.getElementById('pi-cal').className=_piOvr?'override-active':'';document.getElementById('pi-cal-badge').style.display=_piOvr?'':'none';}const a=parseFloat(document.getElementById('pi-amount').value)||0,p=parseFloat(document.getElementById('pi-prot').value)||0,c=parseFloat(document.getElementById('pi-carbs').value)||0,f=parseFloat(document.getElementById('pi-fat').value)||0,b=document.getElementById('pi-banner');if((p||c||f)&&a){const sc=scalePer100({prot:p,carbs:c,fat:f},a);const cc=calFromMacros(sc.prot,sc.carbs,sc.fat);if(!_piOvr)document.getElementById('pi-cal').value=Math.round(cc);b.innerHTML=`<b>${Math.round(cc)} kcal</b>`;}else b.innerHTML=(p||c||f)?'enter amount':'enter macros per 100g';}
@@ -1234,11 +1341,47 @@ function renderWaterLog(){
   list.innerHTML=[...entries].reverse().map((e,ri)=>{
     const i=entries.length-1-ri;
     const t=new Date(e.ts);const tStr=t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'});
-    return`<div class="water-log-item"><span class="water-log-icon">💧</span><div class="water-log-info"><div class="water-log-amount">${fmtWater(e.amount)}</div><div class="water-log-time">${tStr}${e.note?' · '+escHtml(e.note):''}</div></div><button class="food-action del" onclick="deleteWaterEntry(${i})">×</button></div>`;
+    return`<div class="water-log-item"><span class="water-log-icon">💧</span><div class="water-log-info"><div class="water-log-amount">${fmtWater(e.amount)}</div><div class="water-log-time">${tStr}${e.note?' · '+escHtml(e.note):''}</div></div><button class="food-action" onclick="openEditWaterEntry(${i})" title="edit">✎</button><button class="food-action del" onclick="deleteWaterEntry(${i})" title="remove">×</button></div>`;
   }).join('');
 }
 
-function deleteWaterEntry(idx){const day=getWaterDay(todayKey());day.entries.splice(idx,1);saveDB();renderWaterToday();showToast('entry removed');}
+function deleteWaterEntry(idx){
+  const day=getWaterDay(todayKey());
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[idx].amount);
+  day.entries.splice(idx,1);
+  saveDB();renderWaterToday();
+  showUndoToast(`${amt} removed`,()=>{const d=getWaterDay(todayKey());d.entries=snap;saveDB();renderWaterToday();});
+}
+
+let _editWaterIdx=-1,_editWaterKey='';
+function openEditWaterEntry(idx){
+  _editWaterIdx=idx;_editWaterKey=todayKey();
+  const e=getWaterDay(todayKey()).entries[idx];
+  const unit=db.water.settings.unit;
+  document.getElementById('ewi-amount-lbl').textContent='amount ('+(unit==='L'?'L':'ml')+')';
+  document.getElementById('ewi-amount').value=unit==='L'?(e.amount/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,''):e.amount;
+  document.getElementById('ewi-note').value=e.note||'';
+  openModal('modal-edit-water');
+}
+function saveEditedWaterEntry(){
+  const raw=parseFloat(document.getElementById('ewi-amount').value);
+  if(!raw||raw<=0){showToast('enter a valid amount');return;}
+  const unit=db.water.settings.unit;
+  const amountMl=unit==='L'?Math.round(raw*1000):Math.round(raw);
+  const note=document.getElementById('ewi-note').value.trim();
+  const day=getWaterDay(_editWaterKey);
+  day.entries[_editWaterIdx]={...day.entries[_editWaterIdx],amount:amountMl,note};
+  saveDB();closeModal('modal-edit-water');renderWaterToday();showToast('entry updated');
+}
+function deleteWaterEntryFromModal(){
+  const day=getWaterDay(_editWaterKey);
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[_editWaterIdx].amount);
+  day.entries.splice(_editWaterIdx,1);
+  saveDB();closeModal('modal-edit-water');renderWaterToday();
+  showUndoToast(`${amt} removed`,()=>{const d=getWaterDay(_editWaterKey);d.entries=snap;saveDB();renderWaterToday();});
+}
 
 function openAddWater(){
   document.getElementById('wi-amount').value='';document.getElementById('wi-note').value='';
@@ -1251,8 +1394,12 @@ function addWaterEntry(){
   const unit=db.water.settings.unit;
   const amountMl=unit==='L'?Math.round(raw*1000):Math.round(raw);
   const note=document.getElementById('wi-note').value.trim();
-  getWaterDay(todayKey()).entries.push({amount:amountMl,note,ts:Date.now()});
-  saveDB();closeModal('modal-add-water');renderWaterToday();showToast(`+${fmtWater(amountMl)} logged`);
+  const targetKey=_pastWaterAddMode?_waterDayEditKey:todayKey();
+  getWaterDay(targetKey).entries.push({amount:amountMl,note,ts:Date.now()});
+  saveDB();closeModal('modal-add-water');
+  if(_pastWaterAddMode){_pastWaterAddMode=false;renderWaterDayEditList();renderWaterHistory();}
+  else renderWaterToday();
+  showToast(`+${fmtWater(amountMl)} logged`);
 }
 
 // ══════════════════════════════════════════
@@ -1301,46 +1448,104 @@ function renderWaterHistory(){
     const d=new Date(k+'T00:00:00');
     return`<div class="water-hist-day">
       <div class="water-hist-dot ${met?'met':'unmet'}"></div>
-      <div style="flex:1"><div class="water-hist-date">${d.toLocaleDateString('en-NZ',{weekday:'short',month:'short',day:'numeric'})}</div><div class="water-hist-sub">${getWaterDay(k).entries.length} entries</div></div>
+      <div style="flex:1;cursor:pointer;" onclick="openWaterDayEdit('${k}')"><div class="water-hist-date">${d.toLocaleDateString('en-NZ',{weekday:'short',month:'short',day:'numeric'})}</div><div class="water-hist-sub">${getWaterDay(k).entries.length} entries${getWaterDay(k).creatineTaken?' · 💊':''}</div></div>
       <div style="text-align:right"><div class="water-hist-val ${met?'met':'unmet'}">${fmtWater(total)}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${met?'✓ goal met':Math.round(pct)+'% of goal'}</div></div>
       <div class="water-hist-prog"><div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;"><div style="height:100%;border-radius:3px;width:${pct}%;background:${met?'var(--green)':'var(--water)'};transition:width .4s;"></div></div></div>
+      <button class="history-edit-btn" onclick="openWaterDayEdit('${k}')">✎</button>
     </div>`;
   }).join('');
 }
 
-function openWaterDayDetail(key){
-  const day=getWaterDay(key);
-  const total=waterDayTotal(key);
+let _waterDayEditKey='';
+function openWaterDayEdit(key){
+  _waterDayEditKey=key;
+  const d=new Date(key+'T00:00:00');
+  document.getElementById('water-day-edit-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'short',month:'long',day:'numeric'});
+  renderWaterDayEditList();
+  openModal('modal-water-day-edit');
+}
+
+function renderWaterDayEditList(){
+  const day=getWaterDay(_waterDayEditKey);
+  const total=waterDayTotal(_waterDayEditKey);
   const goal=db.water.settings.dailyGoal||2500;
   const met=total>=goal;
-  const d=new Date(key+'T00:00:00');
-  document.getElementById('water-day-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
+  // Summary
   const creatTaken=day.creatineTaken;
   const creatDose=day.creatineDose||db.water.settings.creatineDose||5;
+  document.getElementById('water-day-edit-summary').innerHTML=
+    `<span style="color:${met?'var(--green)':'var(--water)'};">${fmtWater(total)}</span> · ${Math.round(Math.min(total/goal*100,100))}% of ${fmtWaterGoal()} goal`+
+    (creatTaken?` · <span style="color:var(--green)">💊 ${creatDose}g creatine</span>`:'');
+  // Entries list
   const entries=day.entries||[];
-  document.getElementById('water-day-content').innerHTML=`
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
-      <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:${met?'var(--green)':'var(--water)'}">${fmtWater(total)}</div>
-        <div style="font-size:10px;color:var(--muted);">consumed</div>
-      </div>
-      <div style="flex:1">
-        <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;"><div style="height:100%;border-radius:4px;width:${Math.min(total/goal*100,100).toFixed(0)}%;background:${met?'var(--green)':'var(--water)'};transition:width .4s;"></div></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">${Math.round(Math.min(total/goal*100,100))}% of ${fmtWaterGoal()} goal${met?' · ✓ met':''}</div>
-      </div>
-    </div>
-    <div style="background:${creatTaken?'var(--green-bg)':'var(--surface2)'};border:1px solid ${creatTaken?'#3a6e2e':'var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:20px;">💊</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:500;">Creatine</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${creatTaken?`${creatDose}g taken this day`:'not logged this day'}</div>
-      </div>
-      <div style="font-size:12px;padding:4px 10px;border-radius:12px;background:${creatTaken?'#1a3d14':'var(--surface3)'};color:${creatTaken?'var(--green)':'var(--muted)'};">${creatTaken?'✓ taken':'—'}</div>
-    </div>
-    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">water log (${entries.length} entries)</div>
-    ${entries.length?[...entries].reverse().map(e=>{const t=new Date(e.ts);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;">💧</span><div style="flex:1"><div style="font-size:13px;color:var(--water)">${fmtWater(e.amount)}</div><div style="font-size:10px;color:var(--muted)">${t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}${e.note?' · '+escHtml(e.note):''}</div></div></div>`;}).join(''):'<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:13px;">no entries logged</div>'}`;
-  openModal('modal-water-day');
+  const list=document.getElementById('water-day-edit-list');
+  // Creatine row
+  const creatRow=`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);background:${creatTaken?'var(--green-bg)':'transparent'};border-radius:var(--radius-sm);padding:10px 8px;margin-bottom:6px;">
+    <span style="font-size:16px;">💊</span>
+    <div style="flex:1"><div style="font-size:13px;">Creatine</div><div style="font-size:10px;color:var(--muted);">${creatTaken?`${creatDose}g taken`:'not logged'}</div></div>
+    <div style="font-size:12px;color:${creatTaken?'var(--green)':'var(--muted)'};">${creatTaken?'✓ taken':'—'}</div>
+  </div>`;
+  if(!entries.length){list.innerHTML=creatRow+'<div style="padding:12px 0;text-align:center;color:var(--muted);font-size:13px;">no water entries — tap + add</div>';return;}
+  list.innerHTML=creatRow+[...entries].reverse().map((e,ri)=>{
+    const i=entries.length-1-ri;
+    const t=new Date(e.ts);
+    return`<div class="day-edit-food-item">
+      <span style="font-size:14px;">💧</span>
+      <div style="flex:1"><div style="font-size:13px;color:var(--water);">${fmtWater(e.amount)}</div><div style="font-size:10px;color:var(--muted);">${t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}${e.note?' · '+escHtml(e.note):''}</div></div>
+      <button class="food-action" onclick="openPastWaterEntryEdit('${_waterDayEditKey}',${i})">✎</button>
+      <button class="food-action del" onclick="delPastWaterInline('${_waterDayEditKey}',${i})">×</button>
+    </div>`;
+  }).join('');
 }
+
+function addWaterEntryToPastDay(){
+  _pastWaterAddMode=true;
+  document.getElementById('wi-amount').value='';document.getElementById('wi-note').value='';
+  document.getElementById('water-input-lbl').textContent='amount ('+db.water.settings.unit+')';
+  openModal('modal-add-water');setTimeout(()=>document.getElementById('wi-amount').focus(),80);
+}
+let _pastWaterAddMode=false;
+
+function delPastWaterInline(key,idx){
+  const day=getWaterDay(key);
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[idx].amount);
+  day.entries.splice(idx,1);
+  saveDB();renderWaterDayEditList();renderWaterHistory();
+  showUndoToast(`${amt} removed`,()=>{const d=getWaterDay(key);d.entries=snap;saveDB();renderWaterDayEditList();renderWaterHistory();});
+}
+
+let _pastWaterKey='',_pastWaterIdx=-1;
+function openPastWaterEntryEdit(key,idx){
+  _pastWaterKey=key;_pastWaterIdx=idx;
+  const e=getWaterDay(key).entries[idx];
+  const unit=db.water.settings.unit;
+  document.getElementById('ewp-amount-lbl').textContent='amount ('+(unit==='L'?'L':'ml')+')';
+  document.getElementById('ewp-amount').value=unit==='L'?(e.amount/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,''):e.amount;
+  document.getElementById('ewp-note').value=e.note||'';
+  openModal('modal-edit-water-past');
+}
+function savePastWaterEntry(){
+  const raw=parseFloat(document.getElementById('ewp-amount').value);
+  if(!raw||raw<=0){showToast('enter a valid amount');return;}
+  const unit=db.water.settings.unit;
+  const amountMl=unit==='L'?Math.round(raw*1000):Math.round(raw);
+  const note=document.getElementById('ewp-note').value.trim();
+  const day=getWaterDay(_pastWaterKey);
+  day.entries[_pastWaterIdx]={...day.entries[_pastWaterIdx],amount:amountMl,note};
+  saveDB();closeModal('modal-edit-water-past');renderWaterDayEditList();renderWaterHistory();showToast('entry updated');
+}
+function deletePastWaterEntry(){
+  const day=getWaterDay(_pastWaterKey);
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[_pastWaterIdx].amount);
+  day.entries.splice(_pastWaterIdx,1);
+  saveDB();closeModal('modal-edit-water-past');renderWaterDayEditList();renderWaterHistory();
+  showUndoToast(`${amt} removed`,()=>{const d=getWaterDay(_pastWaterKey);d.entries=snap;saveDB();renderWaterDayEditList();renderWaterHistory();});
+}
+
+// openWaterDayDetail still used for bar chart clicks — now redirects to edit
+function openWaterDayDetail(key){openWaterDayEdit(key);}
 
 function renderWaterBarChart(){
   const goal=db.water.settings.dailyGoal||2500,today=todayKey();
@@ -1382,20 +1587,36 @@ function renderWaterBarChart(){
 // ══════════════════════════════════════════
 // WATER SETTINGS
 // ══════════════════════════════════════════
+function saveWaterSettings(){
+  const newUnit=document.getElementById('set-water-unit').value||'ml';
+  const oldUnit=db.water.settings.unit||'ml';
+  const rawGoal=parseFloat(document.getElementById('set-water-goal').value);
+  // Convert stored goal (always in ml) using what the user entered
+  let goalMl;
+  if(!isNaN(rawGoal)&&rawGoal>0){
+    // What unit was the input in? The old unit (before this save)
+    goalMl=oldUnit==='L'?Math.round(rawGoal*1000):Math.round(rawGoal);
+  } else {
+    goalMl=db.water.settings.dailyGoal||2500;
+  }
+  db.water.settings.dailyGoal=goalMl;
+  db.water.settings.unit=newUnit;
+  db.water.settings.creatineDose=parseFloat(document.getElementById('set-creatine-dose').value)||5;
+  saveDB();
+  // Re-display goal in new units
+  document.getElementById('set-water-goal').value=newUnit==='L'?(goalMl/1000).toFixed(3).replace(/\.?0+$/,''):goalMl;
+  document.getElementById('water-goal-unit-sub').textContent='in '+newUnit;
+  showToast('water settings saved');
+}
 function renderWaterSettings(){
   const s=db.water.settings;
-  document.getElementById('set-water-goal').value=s.dailyGoal||'';
-  document.getElementById('set-water-unit').value=s.unit||'ml';
+  const unit=s.unit||'ml';
+  const goal=s.dailyGoal||2500;
+  document.getElementById('set-water-goal').value=unit==='L'?(goal/1000).toFixed(3).replace(/\.?0+$/,''):goal;
+  document.getElementById('set-water-unit').value=unit;
   document.getElementById('set-creatine-dose').value=s.creatineDose||'';
-  document.getElementById('water-goal-unit-sub').textContent='in '+(s.unit||'ml');
+  document.getElementById('water-goal-unit-sub').textContent='in '+unit;
   renderBottlePresetsList();
-}
-function saveWaterSettings(){
-  db.water.settings.dailyGoal=parseInt(document.getElementById('set-water-goal').value)||2500;
-  db.water.settings.unit=document.getElementById('set-water-unit').value||'ml';
-  db.water.settings.creatineDose=parseFloat(document.getElementById('set-creatine-dose').value)||5;
-  saveDB();showToast('water settings saved');
-  document.getElementById('water-goal-unit-sub').textContent='in '+db.water.settings.unit;
 }
 function renderBottlePresetsList(){
   const bottles=db.water.settings.bottles||[];
@@ -1428,20 +1649,6 @@ function deleteBottle(idx){if(!confirm('Delete this bottle?'))return;db.water.se
 function exportData(){const b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='fuelwater_data.json';a.click();URL.revokeObjectURL(u);showToast('data exported');}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);if(imp.fuel&&imp.water){db=imp;saveDB();renderFuelSettings();renderMealsList('');showToast('data imported');}else if(imp.days&&imp.settings){showToast('old format — please use a newer export');}}catch{showToast('could not read file');}};r.readAsText(f);}
 function confirmClear(){if(!confirm('Clear ALL data? This cannot be undone.'))return;db=defaultDB();saveDB();renderFuelToday();renderFuelSettings();showToast('all data cleared');}
-
-// ══════════════════════════════════════════
-// MODALS / TOAST
-// ══════════════════════════════════════════
-function openModal(id){document.getElementById(id).classList.remove('hidden');document.body.style.overflow='hidden';}
-function closeModal(id){document.getElementById(id).classList.add('hidden');document.body.style.overflow='';}
-function closeModalOverlay(e,id){if(e.target===document.getElementById(id))closeModal(id);}
-let _tt;
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2200);}
-
-// ══════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════
-renderFuelToday();
 </script>
 </body>
 </html>
