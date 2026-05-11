@@ -50,13 +50,14 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
 .section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
 
-/* ══ FUEL RING ══ */
-.ring-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 12px;}
-.ring-svg{width:150px;height:150px;}
-.ring-center{text-align:center;margin-top:-86px;margin-bottom:10px;}
-.ring-cal{font-size:30px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);}
-.ring-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-.ring-remaining{font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center;}
+/* ══ FUEL RING — side-by-side layout, no overlap ══ */
+.ring-wrap{display:flex;flex-direction:column;padding:14px 4px 14px;}
+.ring-main-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.ring-svg{width:110px;height:110px;flex-shrink:0;}
+.ring-stats{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;}
+.ring-cal{font-size:32px;font-weight:800;font-family:'Syne',sans-serif;line-height:1;transition:color .3s;}
+.ring-cal-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:1px;}
+.ring-remaining{font-size:12px;color:var(--muted);line-height:1.4;}
 .progress-section{width:100%;}
 .progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:5px;}
 .progress-labels .pct-lbl{color:var(--accent);}
@@ -132,13 +133,12 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif;}
 .meal-group-items{padding:0 12px;background:var(--surface);}
 .meal-group-items.hidden{display:none;}
 
-/* ══ WATER RING ══ */
-.water-ring-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 12px;}
-.water-ring-svg{width:150px;height:150px;}
-.water-ring-center{text-align:center;margin-top:-86px;margin-bottom:10px;}
-.water-ring-val{font-size:26px;font-weight:800;font-family:'Syne',sans-serif;color:var(--water);}
-.water-ring-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-.water-remaining{font-size:12px;color:var(--muted);margin-bottom:12px;text-align:center;}
+/* ══ WATER RING — side-by-side, no overlap ══ */
+.water-ring-wrap{display:flex;flex-direction:column;padding:14px 4px 14px;}
+.water-ring-svg{width:110px;height:110px;flex-shrink:0;}
+.water-ring-val{font-size:28px;font-weight:800;font-family:'Syne',sans-serif;line-height:1;transition:color .3s;}
+.water-ring-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:1px;}
+.water-remaining{font-size:12px;color:var(--muted);line-height:1.4;}
 .water-progress-wrap{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;}
 .water-bar{height:100%;border-radius:4px;transition:width .4s ease;background:var(--water);}
 .water-bar.over{background:var(--blue);}
@@ -337,17 +337,21 @@ input::placeholder{color:var(--muted);}
     </div>
 
     <div class="card ring-wrap">
-      <svg class="ring-svg" viewBox="0 0 150 150">
-        <circle cx="75" cy="75" r="60" fill="none" stroke="#1e1e1e" stroke-width="13"/>
-        <circle id="fuel-ring" cx="75" cy="75" r="60" fill="none" stroke="#c8f064" stroke-width="13"
-          stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"
-          transform="rotate(-90 75 75)" style="transition:stroke-dashoffset .6s ease,stroke .3s"/>
-      </svg>
-      <div class="ring-center">
-        <div id="fuel-ring-cal" class="ring-cal">0</div>
-        <div class="ring-label">calories</div>
+      <div class="ring-main-row">
+        <svg class="ring-svg" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="44" fill="none" stroke="#1e1e1e" stroke-width="11"/>
+          <circle id="fuel-ring" cx="55" cy="55" r="44" fill="none" stroke="#c8f064" stroke-width="11"
+            stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46"
+            transform="rotate(-90 55 55)" style="transition:stroke-dashoffset .6s ease,stroke .3s"/>
+        </svg>
+        <div class="ring-stats">
+          <div>
+            <div id="fuel-ring-cal" class="ring-cal" style="color:var(--accent)">0</div>
+            <div class="ring-cal-lbl">calories today</div>
+          </div>
+          <div id="fuel-ring-rem" class="ring-remaining">— kcal remaining</div>
+        </div>
       </div>
-      <div id="fuel-ring-rem" class="ring-remaining">— kcal remaining</div>
       <div class="progress-section">
         <div class="progress-labels">
           <span>0 kcal</span><span id="fuel-pct" class="pct-lbl">0%</span><span id="fuel-goal-lbl">— goal</span>
@@ -360,17 +364,6 @@ input::placeholder{color:var(--muted);}
       <div class="macro-pill"><div id="m-p" class="macro-val m-p">0g</div><div class="macro-lbl">Protein</div></div>
       <div class="macro-pill"><div id="m-c" class="macro-val m-c">0g</div><div class="macro-lbl">Carbs</div></div>
       <div class="macro-pill"><div id="m-f" class="macro-val m-f">0g</div><div class="macro-lbl">Fat</div></div>
-    </div>
-
-    <!-- Creatine -->
-    <div id="creatine-card" class="creatine-card not-taken" onclick="toggleCreatine()">
-      <div id="creatine-icon" class="creatine-icon not-taken">💊</div>
-      <div class="creatine-info">
-        <div class="creatine-label">Creatine</div>
-        <div id="creatine-sub" class="creatine-sub">tap to mark as taken</div>
-      </div>
-      <div id="creatine-badge" class="creatine-badge not-taken">not taken</div>
-      <div id="creatine-check" class="creatine-check not-taken">✓</div>
     </div>
 
     <div class="section-label">saved meals</div>
@@ -415,9 +408,6 @@ input::placeholder{color:var(--muted);}
       </div>
       <div class="chart-wrap"><div id="fuel-bar-chart" class="bar-chart"></div></div>
     </div>
-    <!-- Creatine history strip -->
-    <div class="section-label" style="margin-bottom:6px">creatine log <span style="font-size:10px;color:var(--muted)">last 14 days</span></div>
-    <div class="card"><div id="creatine-history-list"></div></div>
     <div class="section-label" style="margin-bottom:6px">daily calories <span style="font-size:10px;color:var(--muted)">tap ✎ to edit</span></div>
     <div class="card"><div id="fuel-history-list"></div></div>
   </div>
@@ -433,10 +423,6 @@ input::placeholder{color:var(--muted);}
       <div class="setting-row"><div><div class="setting-lbl">protein goal</div><div class="setting-sub">g per day</div></div><input type="number" id="set-prot-goal" class="setting-input" placeholder="150" min="0" onchange="saveFuelSettings()"></div>
       <div class="setting-row"><div><div class="setting-lbl">carbs goal</div><div class="setting-sub">g per day</div></div><input type="number" id="set-carb-goal" class="setting-input" placeholder="250" min="0" onchange="saveFuelSettings()"></div>
       <div class="setting-row"><div><div class="setting-lbl">fat goal</div><div class="setting-sub">g per day</div></div><input type="number" id="set-fat-goal" class="setting-input" placeholder="65" min="0" onchange="saveFuelSettings()"></div>
-    </div>
-    <div class="card">
-      <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--green)">creatine</div>
-      <div class="setting-row"><div><div class="setting-lbl">daily dose</div><div class="setting-sub">grams per day</div></div><input type="number" id="set-creatine-dose" class="setting-input" placeholder="5" min="0" step="0.5" onchange="saveFuelSettings()"></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="section-label" style="margin:0">saved meals</div>
@@ -479,17 +465,21 @@ input::placeholder{color:var(--muted);}
 
     <!-- Water ring -->
     <div class="card water-ring-wrap">
-      <svg class="water-ring-svg" viewBox="0 0 150 150">
-        <circle cx="75" cy="75" r="60" fill="none" stroke="#1e1e1e" stroke-width="13"/>
-        <circle id="water-ring" cx="75" cy="75" r="60" fill="none" stroke="#38bdf8" stroke-width="13"
-          stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"
-          transform="rotate(-90 75 75)" style="transition:stroke-dashoffset .6s ease"/>
-      </svg>
-      <div class="water-ring-center">
-        <div id="water-ring-val" class="water-ring-val">0</div>
-        <div class="water-ring-lbl" id="water-ring-unit-lbl">ml today</div>
+      <div class="ring-main-row">
+        <svg class="water-ring-svg" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="44" fill="none" stroke="#1e1e1e" stroke-width="11"/>
+          <circle id="water-ring" cx="55" cy="55" r="44" fill="none" stroke="#38bdf8" stroke-width="11"
+            stroke-linecap="round" stroke-dasharray="276.46" stroke-dashoffset="276.46"
+            transform="rotate(-90 55 55)" style="transition:stroke-dashoffset .6s ease"/>
+        </svg>
+        <div class="ring-stats">
+          <div>
+            <div id="water-ring-val" class="water-ring-val" style="color:var(--water)">0</div>
+            <div class="water-ring-lbl" id="water-ring-unit-lbl">ml today</div>
+          </div>
+          <div id="water-ring-rem" class="water-remaining">— remaining</div>
+        </div>
       </div>
-      <div id="water-ring-rem" class="water-remaining">— remaining</div>
       <div class="progress-section">
         <div class="progress-labels">
           <span>0</span><span id="water-pct" class="wpct-lbl">0%</span><span id="water-goal-lbl">— goal</span>
@@ -568,6 +558,10 @@ input::placeholder{color:var(--muted);}
           <option value="L">L</option>
         </select>
       </div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--green)">creatine</div>
+      <div class="setting-row"><div><div class="setting-lbl">daily dose</div><div class="setting-sub">grams per day</div></div><input type="number" id="set-creatine-dose" class="setting-input" placeholder="5" min="0" step="0.5" onchange="saveWaterSettings()"></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="section-label" style="margin:0">water bottles</div>
@@ -733,6 +727,16 @@ input::placeholder{color:var(--muted);}
   </div>
 </div>
 
+<!-- Water Day Detail (click bar) -->
+<div id="modal-water-day" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-water-day')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="water-day-title"></div>
+    <div id="water-day-content"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:16px;" onclick="closeModal('modal-water-day')">close</button>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════
 // DATABASE
@@ -740,8 +744,8 @@ input::placeholder{color:var(--muted);}
 const DB_KEY='fuel_water_v1';
 function loadDB(){try{return JSON.parse(localStorage.getItem(DB_KEY))||defaultDB();}catch(e){return defaultDB();}}
 function defaultDB(){return{
-  fuel:{settings:{calGoal:2000,protGoal:150,carbGoal:250,fatGoal:65,creatineDose:5},days:{},savedMeals:[]},
-  water:{settings:{dailyGoal:2500,unit:'ml',bottles:[
+  fuel:{settings:{calGoal:2000,protGoal:150,carbGoal:250,fatGoal:65},days:{},savedMeals:[]},
+  water:{settings:{dailyGoal:2500,unit:'ml',creatineDose:5,bottles:[
     {name:'small glass',size:250},{name:'large glass',size:400},{name:'gym bottle',size:750},{name:'1L bottle',size:1000}
   ]},days:{}}
 };}
@@ -754,8 +758,8 @@ function todayKey(){return fmtKey(new Date());}
 function uid(){return'id'+Date.now()+Math.random().toString(36).slice(2,6);}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function getFuelDay(k){if(!db.fuel.days[k])db.fuel.days[k]={items:[],creatineTaken:false,creatineDose:null};return db.fuel.days[k];}
-function getWaterDay(k){if(!db.water.days[k])db.water.days[k]={entries:[]};return db.water.days[k];}
+function getFuelDay(k){if(!db.fuel.days[k])db.fuel.days[k]={items:[]};return db.fuel.days[k];}
+function getWaterDay(k){if(!db.water.days[k])db.water.days[k]={entries:[],creatineTaken:false,creatineDose:null};return db.water.days[k];}
 
 function fuelDayTotals(k){return getFuelDay(k).items.reduce((a,it)=>({cal:a.cal+(it.cal||0),prot:a.prot+(it.prot||0),carbs:a.carbs+(it.carbs||0),fat:a.fat+(it.fat||0)}),{cal:0,prot:0,carbs:0,fat:0});}
 function waterDayTotal(k){return getWaterDay(k).entries.reduce((s,e)=>s+(e.amount||0),0);}
@@ -808,52 +812,52 @@ let viewKey=todayKey();
 function renderFuelToday(){
   document.getElementById('fuel-today-date').textContent=new Date().toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
   const tot=fuelDayTotals(viewKey),goal=db.fuel.settings.calGoal||2000;
-  const CIRC=376.99,pct=Math.min(tot.cal/goal,1);
+  const CIRC=276.46,pct=Math.min(tot.cal/goal,1);
   const ring=document.getElementById('fuel-ring');
+  const ringColor=tot.cal>goal?'#ff6b6b':pct>=1?'#4ade80':'#c8f064';
   ring.style.strokeDashoffset=CIRC-pct*CIRC;
-  ring.style.stroke=tot.cal>goal?'#ff6b6b':'#c8f064';
+  ring.style.stroke=ringColor;
   document.getElementById('fuel-ring-cal').textContent=Math.round(tot.cal).toLocaleString();
+  document.getElementById('fuel-ring-cal').style.color=ringColor;
   const rem=goal-tot.cal;
   document.getElementById('fuel-ring-rem').innerHTML=rem>=0?`<span style="color:var(--accent)">${Math.round(rem).toLocaleString()}</span> kcal remaining`:`<span style="color:var(--red)">${Math.abs(Math.round(rem)).toLocaleString()} kcal over goal</span>`;
   const pn=Math.round(Math.min(pct*100,100));
   document.getElementById('fuel-goal-lbl').textContent=goal.toLocaleString()+' kcal';
   document.getElementById('fuel-pct').textContent=pn+'%';
+  document.getElementById('fuel-pct').style.color=ringColor;
   const bar=document.getElementById('fuel-bar');
   bar.style.width=pn+'%';bar.className='progress-bar'+(tot.cal>goal?' over':'');
   document.getElementById('m-p').textContent=Math.round(tot.prot)+'g';
   document.getElementById('m-c').textContent=Math.round(tot.carbs)+'g';
   document.getElementById('m-f').textContent=Math.round(tot.fat)+'g';
-  renderCreatineCard();
   renderMealsList('');
   renderFoodLog();
 }
 
-// ── CREATINE ──
+// ── CREATINE (water section only) ──
 function renderCreatineCard(){
-  const day=getFuelDay(viewKey);
+  const day=getWaterDay(todayKey());
   const taken=day.creatineTaken;
-  const dose=db.fuel.settings.creatineDose||5;
+  const dose=db.water.settings.creatineDose||5;
   const sub=taken?`${dose}g taken today`:`${dose}g — tap to mark taken`;
-  ['','water-'].forEach(pfx=>{
-    const card=document.getElementById(pfx+'creatine-card');
-    const icon=document.getElementById(pfx+'creatine-icon');
-    const badge=document.getElementById(pfx+'creatine-badge');
-    const check=document.getElementById(pfx+'creatine-check');
-    const subEl=document.getElementById(pfx+'creatine-sub');
-    if(!card)return;
-    card.className='creatine-card '+(taken?'taken':'not-taken');
-    icon.className='creatine-icon '+(taken?'taken':'not-taken');
-    badge.className='creatine-badge '+(taken?'taken':'not-taken');
-    badge.textContent=taken?'✓ taken':'not taken';
-    check.className='creatine-check '+(taken?'taken':'not-taken');
-    if(subEl)subEl.textContent=sub;
-  });
+  const card=document.getElementById('water-creatine-card');
+  const icon=document.getElementById('water-creatine-icon');
+  const badge=document.getElementById('water-creatine-badge');
+  const check=document.getElementById('water-creatine-check');
+  const subEl=document.getElementById('water-creatine-sub');
+  if(!card)return;
+  card.className='creatine-card '+(taken?'taken':'not-taken');
+  icon.className='creatine-icon '+(taken?'taken':'not-taken');
+  badge.className='creatine-badge '+(taken?'taken':'not-taken');
+  badge.textContent=taken?'✓ taken':'not taken';
+  check.className='creatine-check '+(taken?'taken':'not-taken');
+  if(subEl)subEl.textContent=sub;
 }
 
 function toggleCreatine(){
-  const day=getFuelDay(viewKey);
+  const day=getWaterDay(todayKey());
   day.creatineTaken=!day.creatineTaken;
-  if(day.creatineTaken)day.creatineDose=db.fuel.settings.creatineDose||5;
+  if(day.creatineTaken)day.creatineDose=db.water.settings.creatineDose||5;
   else day.creatineDose=null;
   saveDB();renderCreatineCard();
   showToast(day.creatineTaken?'💊 creatine marked as taken':'creatine unmarked');
@@ -1074,18 +1078,6 @@ function renderFuelHistory(){
   else if(dLeft>0){document.getElementById('weekly-budget-val').textContent=Math.max(0,Math.round(wkRemain)).toLocaleString();document.getElementById('weekly-budget-sub').textContent=`kcal remaining · ${Math.max(0,Math.round(wkRemain/dLeft)).toLocaleString()} kcal/day for ${dLeft} more day${dLeft!==1?'s':''}`;}
   else{document.getElementById('weekly-budget-val').textContent=(wkRemain>=0?'+':'')+Math.round(wkRemain).toLocaleString();document.getElementById('weekly-budget-sub').textContent=wkRemain>=0?'kcal under budget — great week! 🎉':'kcal over weekly budget';}
   renderFuelBarChart();
-  // Creatine history (last 14 days)
-  const creatList=document.getElementById('creatine-history-list');
-  const creatKeys=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(13-i));return fmtKey(d);}).reverse();
-  creatList.innerHTML=creatKeys.map(k=>{
-    const day=db.fuel.days[k];const taken=day?.creatineTaken;const dose=day?.creatineDose;
-    const d=new Date(k+'T00:00:00');
-    return`<div class="creat-hist-day">
-      <div class="creat-hist-dot ${taken?'yes':'no'}"></div>
-      <div style="flex:1"><div style="font-size:13px">${d.toLocaleDateString('en-NZ',{weekday:'short',month:'short',day:'numeric'})}</div></div>
-      <div style="font-size:12px;${taken?'color:var(--green)':'color:var(--muted)'}">${taken?`✓ ${dose||'?'}g taken`:'—'}</div>
-    </div>`;
-  }).join('');
   // Day log
   const histList=document.getElementById('fuel-history-list');
   if(!allKeys.length){histList.innerHTML='<div class="empty-state"><div class="empty-icon">📅</div>no history yet</div>';return;}
@@ -1158,7 +1150,6 @@ function deletePastItem(){db.fuel.days[_piKey].items.splice(_piIdx,1);saveDB();c
 function renderFuelSettings(){
   const s=db.fuel.settings;
   ['cal','prot','carb','fat'].forEach(k=>document.getElementById(`set-${k}-goal`).value=s[k+'Goal']||'');
-  document.getElementById('set-creatine-dose').value=s.creatineDose||'';
   const list=document.getElementById('saved-meals-list');
   if(!db.fuel.savedMeals.length){list.innerHTML='<div class="card"><div class="empty-state" style="padding:24px">no saved meals yet</div></div>';return;}
   list.innerHTML=db.fuel.savedMeals.map((m,i)=>{
@@ -1172,7 +1163,6 @@ function saveFuelSettings(){
   db.fuel.settings.protGoal=parseInt(document.getElementById('set-prot-goal').value)||150;
   db.fuel.settings.carbGoal=parseInt(document.getElementById('set-carb-goal').value)||250;
   db.fuel.settings.fatGoal=parseInt(document.getElementById('set-fat-goal').value)||65;
-  db.fuel.settings.creatineDose=parseFloat(document.getElementById('set-creatine-dose').value)||5;
   saveDB();showToast('settings saved');
 }
 function deleteSavedMeal(idx){if(!confirm(`Delete "${db.fuel.savedMeals[idx].name}"?`))return;db.fuel.savedMeals.splice(idx,1);saveDB();renderFuelSettings();renderMealsList('');showToast('meal deleted');}
@@ -1197,11 +1187,14 @@ function openWaterTab(t){
 function renderWaterToday(){
   document.getElementById('water-today-date').textContent=new Date().toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
   const total=waterDayTotal(todayKey()),goal=db.water.settings.dailyGoal||2500;
-  const CIRC=376.99,pct=Math.min(total/goal,1);
+  const CIRC=276.46,pct=Math.min(total/goal,1);
   const ring=document.getElementById('water-ring');
+  const ringColor=total>=goal?'#4ade80':'#38bdf8';
   ring.style.strokeDashoffset=CIRC-pct*CIRC;
-  ring.style.stroke=total>=goal?'#4ade80':'#38bdf8';
-  document.getElementById('water-ring-val').textContent=fmtWater(total);
+  ring.style.stroke=ringColor;
+  const valEl=document.getElementById('water-ring-val');
+  valEl.textContent=fmtWater(total);
+  valEl.style.color=ringColor;
   document.getElementById('water-ring-unit-lbl').textContent=(db.water.settings.unit==='L'?'L':'ml')+' today';
   const rem=Math.max(0,goal-total);
   const remEl=document.getElementById('water-ring-rem');
@@ -1209,7 +1202,9 @@ function renderWaterToday(){
   else remEl.innerHTML=`<span style="color:var(--water)">${fmtWater(rem)}</span> remaining`;
   const pn=Math.round(Math.min(pct*100,100));
   document.getElementById('water-goal-lbl').textContent=fmtWaterGoal()+' goal';
-  document.getElementById('water-pct').textContent=pn+'%';
+  const wpct=document.getElementById('water-pct');
+  wpct.textContent=pn+'%';
+  wpct.style.color=ringColor;
   const bar=document.getElementById('water-bar');
   bar.style.width=pn+'%';bar.className='water-bar'+(total>goal?' over':'');
   renderCreatineCard();
@@ -1313,6 +1308,40 @@ function renderWaterHistory(){
   }).join('');
 }
 
+function openWaterDayDetail(key){
+  const day=getWaterDay(key);
+  const total=waterDayTotal(key);
+  const goal=db.water.settings.dailyGoal||2500;
+  const met=total>=goal;
+  const d=new Date(key+'T00:00:00');
+  document.getElementById('water-day-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
+  const creatTaken=day.creatineTaken;
+  const creatDose=day.creatineDose||db.water.settings.creatineDose||5;
+  const entries=day.entries||[];
+  document.getElementById('water-day-content').innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      <div style="text-align:center;">
+        <div style="font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:${met?'var(--green)':'var(--water)'}">${fmtWater(total)}</div>
+        <div style="font-size:10px;color:var(--muted);">consumed</div>
+      </div>
+      <div style="flex:1">
+        <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden;"><div style="height:100%;border-radius:4px;width:${Math.min(total/goal*100,100).toFixed(0)}%;background:${met?'var(--green)':'var(--water)'};transition:width .4s;"></div></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${Math.round(Math.min(total/goal*100,100))}% of ${fmtWaterGoal()} goal${met?' · ✓ met':''}</div>
+      </div>
+    </div>
+    <div style="background:${creatTaken?'var(--green-bg)':'var(--surface2)'};border:1px solid ${creatTaken?'#3a6e2e':'var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:20px;">💊</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500;">Creatine</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${creatTaken?`${creatDose}g taken this day`:'not logged this day'}</div>
+      </div>
+      <div style="font-size:12px;padding:4px 10px;border-radius:12px;background:${creatTaken?'#1a3d14':'var(--surface3)'};color:${creatTaken?'var(--green)':'var(--muted)'};">${creatTaken?'✓ taken':'—'}</div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">water log (${entries.length} entries)</div>
+    ${entries.length?[...entries].reverse().map(e=>{const t=new Date(e.ts);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;">💧</span><div style="flex:1"><div style="font-size:13px;color:var(--water)">${fmtWater(e.amount)}</div><div style="font-size:10px;color:var(--muted)">${t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}${e.note?' · '+escHtml(e.note):''}</div></div></div>`;}).join(''):'<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:13px;">no entries logged</div>'}`;
+  openModal('modal-water-day');
+}
+
 function renderWaterBarChart(){
   const goal=db.water.settings.dailyGoal||2500,today=todayKey();
   const days=getWeekDays(waterWeekOffset);
@@ -1332,8 +1361,12 @@ function renderWaterBarChart(){
     const v=vals[i],isFuture=k>today,isToday=k===today,met=v>=goal;
     const pct=Math.max(v/maxV*100,0),gp=goal/maxV*100;
     const color=isFuture?'var(--surface3)':met?'var(--green)':isToday?'var(--water)':'var(--water-dim)';
-    return`<div class="bar-col" style="${isFuture?'cursor:default':''}">
-      <div class="bar-val">${v&&!isFuture?(v>=1000?(v/1000).toFixed(1)+'L':v):'&nbsp;'}</div>
+    const wday=db.water.days[k];
+    const creatTaken=wday?.creatineTaken;
+    return`<div class="bar-col" onclick="${!isFuture?`openWaterDayDetail('${k}')`:''}" style="${isFuture?'cursor:default':''}">
+      <div class="bar-val" style="position:relative">
+        ${creatTaken?`<span style="font-size:8px;display:block;text-align:center;color:var(--green);">💊</span>`:(wday&&!isFuture?`<span style="font-size:8px;display:block;text-align:center;color:var(--muted);">·</span>`:'<span style="font-size:8px;display:block;">&nbsp;</span>')}
+      </div>
       <div style="flex:1;display:flex;align-items:flex-end;width:100%;position:relative;">
         <div style="position:absolute;bottom:${gp.toFixed(1)}%;left:-2px;right:-2px;height:1px;background:var(--water);opacity:.3;pointer-events:none;"></div>
         <div class="bar" style="height:${isFuture?10:pct.toFixed(1)}%;background:${color};opacity:${isFuture?.2:v?1:.1};"></div>
@@ -1353,12 +1386,14 @@ function renderWaterSettings(){
   const s=db.water.settings;
   document.getElementById('set-water-goal').value=s.dailyGoal||'';
   document.getElementById('set-water-unit').value=s.unit||'ml';
+  document.getElementById('set-creatine-dose').value=s.creatineDose||'';
   document.getElementById('water-goal-unit-sub').textContent='in '+(s.unit||'ml');
   renderBottlePresetsList();
 }
 function saveWaterSettings(){
   db.water.settings.dailyGoal=parseInt(document.getElementById('set-water-goal').value)||2500;
   db.water.settings.unit=document.getElementById('set-water-unit').value||'ml';
+  db.water.settings.creatineDose=parseFloat(document.getElementById('set-creatine-dose').value)||5;
   saveDB();showToast('water settings saved');
   document.getElementById('water-goal-unit-sub').textContent='in '+db.water.settings.unit;
 }
