@@ -301,6 +301,9 @@ input::placeholder{color:var(--muted);}
 /* ══ MISC ══ */
 .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--accent);color:#0d0d0d;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:600;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+.undo-bar{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--surface3);color:var(--text);border:1px solid var(--border2);padding:10px 16px;border-radius:20px;font-size:13px;font-weight:500;z-index:601;opacity:0;transition:opacity .2s;display:flex;align-items:center;gap:10px;white-space:nowrap;pointer-events:none;}
+.undo-bar.show{opacity:1;pointer-events:auto;}
+.undo-bar-btn{background:var(--accent);color:#0d0d0d;border:none;border-radius:12px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Mono',monospace;}
 .empty-state{text-align:center;padding:36px 20px;color:var(--muted);font-size:13px;}
 .empty-icon{font-size:36px;margin-bottom:10px;opacity:.4;}
 .history-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px 6px;line-height:1;flex-shrink:0;}
@@ -312,6 +315,7 @@ input::placeholder{color:var(--muted);}
 <body>
 
 <div id="toast" class="toast"></div>
+<div id="undo-bar" class="undo-bar"><span id="undo-bar-msg">item removed</span><button class="undo-bar-btn" onclick="doUndo()">UNDO</button></div>
 
 <!-- ════════════ APP SWITCHER ════════════ -->
 <div class="app-switcher">
@@ -382,13 +386,13 @@ input::placeholder{color:var(--muted);}
   <!-- FUEL HISTORY -->
   <div id="fuel-tab-history" class="tab-panel">
     <div class="page-header">
-      <div><div class="page-title">HISTORY</div><div class="page-subtitle">calories &amp; creatine</div></div>
+      <div><div class="page-title">HISTORY</div><div class="page-subtitle">calories &amp; macronutrients</div></div>
     </div>
     <div class="stats-grid">
       <div class="stat-card"><div id="stat-weekly" class="stat-val" style="color:var(--accent)">—</div><div class="stat-lbl">7-day avg</div><div id="stat-weekly-diff" class="stat-diff"></div></div>
       <div class="stat-card"><div id="stat-monthly" class="stat-val" style="color:var(--blue)">—</div><div class="stat-lbl">30-day avg</div><div id="stat-monthly-diff" class="stat-diff"></div></div>
       <div class="stat-card"><div id="stat-streak" class="stat-val" style="color:var(--amber)">—</div><div class="stat-lbl">day streak</div></div>
-      <div class="stat-card"><div id="stat-best" class="stat-val" style="color:var(--protein)">—</div><div class="stat-lbl">best day</div></div>
+      <div class="stat-card"><div id="stat-best" class="stat-val" style="color:var(--protein)">—</div><div class="stat-lbl">7-day range</div></div>
     </div>
     <div class="budget-card">
       <div class="budget-title">⚡ this week's calories remaining</div>
@@ -510,7 +514,7 @@ input::placeholder{color:var(--muted);}
   <!-- WATER HISTORY -->
   <div id="water-tab-history" class="tab-panel">
     <div class="page-header">
-      <div><div class="page-title">HISTORY</div><div class="page-subtitle">hydration journey</div></div>
+      <div><div class="page-title">HISTORY</div><div class="page-subtitle">water &amp; creatine</div></div>
     </div>
     <div class="stats-grid">
       <div class="stat-card"><div id="w-stat-7" class="stat-val" style="color:var(--water)">—</div><div class="stat-lbl">7-day avg</div><div id="w-stat-7-diff" class="stat-diff"></div></div>
@@ -670,7 +674,10 @@ input::placeholder{color:var(--muted);}
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <div class="modal-title" id="day-edit-title" style="margin:0"></div>
-      <button class="btn btn-ghost btn-xs" onclick="addItemToPastDay()">+ add item</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-xs" onclick="openHistoryMealPicker()">+ meal</button>
+        <button class="btn btn-ghost btn-xs" onclick="addItemToPastDay()">+ item</button>
+      </div>
     </div>
     <div id="day-edit-totals" style="font-size:12px;color:var(--muted);margin-bottom:14px;"></div>
     <div id="day-edit-list"></div>
@@ -734,6 +741,39 @@ input::placeholder{color:var(--muted);}
     <div class="modal-title" id="water-day-title"></div>
     <div id="water-day-content"></div>
     <button class="btn btn-ghost btn-full" style="margin-top:16px;" onclick="closeModal('modal-water-day')">close</button>
+  </div>
+</div>
+
+<!-- Edit Water Entry -->
+<div id="modal-edit-water" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-edit-water')">
+  <div class="modal-sheet water-focus">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--water)">edit water entry</div>
+    <div class="input-row"><div class="input-lbl" id="edit-water-input-lbl">amount (ml)</div><input type="number" id="ewi-amount" placeholder="e.g. 500" min="1" step="1"></div>
+    <div class="input-row" style="margin-bottom:14px;"><div class="input-lbl">note (optional)</div><input type="text" id="ewi-note" placeholder="e.g. morning glass"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-danger btn-xs" onclick="deleteEditedWaterEntry()">delete</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-edit-water')">cancel</button>
+      <button class="btn btn-water" style="flex:2" onclick="saveEditedWaterEntry()">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Saved Meal to Past Day (history) -->
+<div id="modal-history-meal" class="modal-overlay hidden" onclick="closeModalOverlay(event,'modal-history-meal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="modal-title" id="history-meal-preset-title" style="margin:0">add meal</div>
+      <button class="btn btn-ghost btn-xs" onclick="addHistoryPresetItem()">+ item</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">edit amounts or macros before adding</div>
+    <div id="history-meal-preset-items"></div>
+    <div id="history-meal-preset-total" style="text-align:right;font-size:13px;color:var(--accent);padding-top:10px;border-top:1px solid var(--border);margin-top:4px;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-history-meal');openDayEdit(_dayEditKey)">cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="applyHistoryPreset()">add to this day</button>
+    </div>
   </div>
 </div>
 
@@ -895,8 +935,18 @@ function renderFoodLog(){
   }).join('');
 }
 function toggleGroup(id){const el=document.getElementById(id),ch=document.getElementById('chev_'+id);el.classList.toggle('hidden');ch.classList.toggle('open');}
-function deleteFoodItem(key,idx){db.fuel.days[key].items.splice(idx,1);saveDB();renderFuelToday();showToast('item removed');}
-function deleteMealGroup(key,gid){db.fuel.days[key].items=db.fuel.days[key].items.filter(it=>it.mealGroup?.groupId!==gid);saveDB();renderFuelToday();showToast('meal removed');}
+function deleteFoodItem(key,idx){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const name=db.fuel.days[key].items[idx].name;
+  db.fuel.days[key].items.splice(idx,1);saveDB();renderFuelToday();
+  pushUndo(snap,'removed "'+name+'"',s=>{db.fuel.days[key].items=s;saveDB();renderFuelToday();});
+}
+function deleteMealGroup(key,gid){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const gName=db.fuel.days[key].items.find(it=>it.mealGroup?.groupId===gid)?.mealGroup?.name||'meal';
+  db.fuel.days[key].items=db.fuel.days[key].items.filter(it=>it.mealGroup?.groupId!==gid);saveDB();renderFuelToday();
+  pushUndo(snap,'removed "'+gName+'"',s=>{db.fuel.days[key].items=s;saveDB();renderFuelToday();});
+}
 
 // ── EDIT TODAY ITEM ──
 let _editKey='',_editIdx=-1,_eiOvr=false;
@@ -952,7 +1002,7 @@ function addFoodItem(){
   const targetKey=_pastAddMode?_pastAddKey:viewKey;
   getFuelDay(targetKey).items.push({name,cal,prot,carbs,fat,amountG:a||null,per100:(p||c||f)?{prot:p,carbs:c,fat:f}:null,ts:Date.now()});
   saveDB();closeModal('modal-add-food');
-  if(_pastAddMode){_pastAddMode=false;renderDayEditList();renderFuelHistory();}else renderFuelToday();
+  if(_pastAddMode){_pastAddMode=false;openDayEdit(_pastAddKey);renderFuelHistory();}else renderFuelToday();
   showToast(`${name} added`);
 }
 
@@ -1052,12 +1102,15 @@ function fuelShiftWeek(d){const n=fuelWeekOffset+d;if(n>0)return;fuelWeekOffset=
 
 function renderFuelHistory(){
   const goal=db.fuel.settings.calGoal||2000;
+  const today=todayKey();
   const allKeys=Object.keys(db.fuel.days).sort((a,b)=>b.localeCompare(a));
-  const r7=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return fmtKey(d);});
-  const d7=r7.map(k=>db.fuel.days[k]?.items?.length?fuelDayTotals(k).cal:null).filter(x=>x!==null);
+  // 7-day avg — exclude today (full days only = past days with data)
+  const r7=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(7-i));return fmtKey(d);});
+  const d7=r7.filter(k=>k<today).map(k=>db.fuel.days[k]?.items?.length?fuelDayTotals(k).cal:null).filter(x=>x!==null);
   const avg7=d7.length?Math.round(d7.reduce((a,b)=>a+b,0)/d7.length):null;
-  const r30=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(29-i));return fmtKey(d);});
-  const d30=r30.map(k=>db.fuel.days[k]?.items?.length?fuelDayTotals(k).cal:null).filter(x=>x!==null);
+  // 30-day avg — exclude today
+  const r30=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(30-i));return fmtKey(d);});
+  const d30=r30.filter(k=>k<today).map(k=>db.fuel.days[k]?.items?.length?fuelDayTotals(k).cal:null).filter(x=>x!==null);
   const avg30=d30.length?Math.round(d30.reduce((a,b)=>a+b,0)/d30.length):null;
   document.getElementById('stat-weekly').textContent=avg7!==null?avg7.toLocaleString():'—';
   document.getElementById('stat-monthly').textContent=avg30!==null?avg30.toLocaleString():'—';
@@ -1065,10 +1118,16 @@ function renderFuelHistory(){
   setDiff('stat-weekly-diff',avg7);setDiff('stat-monthly-diff',avg30);
   let streak=0;for(let i=0;i<365;i++){const d=new Date();d.setDate(d.getDate()-i);const k=fmtKey(d);if(db.fuel.days[k]?.items?.length)streak++;else if(i>0)break;}
   document.getElementById('stat-streak').textContent=streak;
-  const best=allKeys.reduce((b,k)=>{const c=fuelDayTotals(k).cal;return c>b?c:b;},0);
-  document.getElementById('stat-best').textContent=best?Math.round(best).toLocaleString():'—';
+  // Best/worst day: lowest and highest cal over past 7 full days (non-zero)
+  const past7full=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(i+1));return fmtKey(d);}).filter(k=>db.fuel.days[k]?.items?.length);
+  const past7cals=past7full.map(k=>fuelDayTotals(k).cal).filter(c=>c>0);
+  if(past7cals.length){
+    const lo=Math.min(...past7cals),hi=Math.max(...past7cals);
+    document.getElementById('stat-best').textContent=lo===hi?Math.round(lo).toLocaleString()+' kcal':`↓${Math.round(lo).toLocaleString()} / ↑${Math.round(hi).toLocaleString()}`;
+    document.getElementById('stat-best').style.fontSize=lo===hi?'22px':'14px';
+  }else document.getElementById('stat-best').textContent='—';
   // Weekly budget (Mon–Sun)
-  const wk=currentWeekDays(),today=todayKey();
+  const wk=currentWeekDays();
   const wkLogged=wk.filter(k=>k<=today&&db.fuel.days[k]?.items?.length);
   const wkTotal=wkLogged.reduce((s,k)=>s+fuelDayTotals(k).cal,0);
   const wkRemain=goal*7-wkTotal,dow=(new Date().getDay()+6)%7,dLeft=6-dow;
@@ -1126,7 +1185,59 @@ function renderFuelBarChart(){
 // Swipe on fuel chart
 (function(){let sx=0,sy=0;const c=document.getElementById('fuel-chart-card');if(!c)return;c.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});c.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>44){if(dx<0)fuelShiftWeek(-1);else if(fuelWeekOffset<0)fuelShiftWeek(1);}},{passive:true});})();
 
-// ── EDIT PAST DAY ──
+// ── ADD SAVED MEAL TO PAST DAY ──
+let _historyPresetItems=[],_historyPresetMealIdx=-1;
+function openHistoryMealPicker(){
+  if(!db.fuel.savedMeals.length){showToast('no saved meals yet');return;}
+  // Show a quick picker list inside a temporary overlay using the existing meal panel design
+  const list=document.getElementById('history-meal-preset-items');
+  _historyPresetMealIdx=-1;
+  // Reuse modal-history-meal as a meal picker first
+  document.getElementById('history-meal-preset-title').textContent='pick a saved meal';
+  list.innerHTML=db.fuel.savedMeals.map((m,i)=>{
+    const totCal=m.items.reduce((s,it)=>s+(it.cal||0),0);
+    const icon=MEAL_EMOJIS[i%MEAL_EMOJIS.length];
+    return`<div class="meal-row" onclick="loadHistoryMealPreset(${i})" style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;"><span class="meal-row-icon">${icon}</span><div class="meal-row-info"><div class="meal-row-name">${escHtml(m.name)}</div><div class="meal-row-meta">${m.items.length} items</div></div><div class="meal-row-cal">${Math.round(totCal)} kcal</div><div class="meal-row-arrow">›</div></div>`;
+  }).join('');
+  document.getElementById('history-meal-preset-total').textContent='';
+  document.querySelector('#modal-history-meal .btn-primary').style.display='none';
+  document.querySelector('#modal-history-meal .btn-ghost').textContent='cancel';
+  closeModal('modal-day-edit');openModal('modal-history-meal');
+}
+function loadHistoryMealPreset(idx){
+  _historyPresetMealIdx=idx;const m=db.fuel.savedMeals[idx];
+  document.getElementById('history-meal-preset-title').textContent=m.name;
+  _historyPresetItems=m.items.map(it=>({...it,per100:it.per100?{...it.per100}:null}));
+  renderHistoryPresetEditItems();
+  document.querySelector('#modal-history-meal .btn-primary').style.display='';
+}
+function renderHistoryPresetEditItems(){
+  document.getElementById('history-meal-preset-items').innerHTML=_historyPresetItems.map((it,i)=>`
+    <div class="preset-edit-item" id="hpei_${i}">
+      <div class="preset-edit-header"><input class="preset-edit-name-input" type="text" value="${escHtml(it.name)}" placeholder="name" oninput="updHistPresetItem(${i},'name',this.value)"><button class="food-action del" onclick="removeHistPresetItem(${i})">×</button></div>
+      <div class="preset-edit-fields">
+        <div><div class="input-lbl" style="color:var(--protein)">P/100g</div><input type="number" placeholder="0" min="0" step="0.1" value="${it.per100?.prot??''}" oninput="updHistPresetMacro(${i},'p100',this.value)"></div>
+        <div><div class="input-lbl" style="color:var(--carbs)">C/100g</div><input type="number" placeholder="0" min="0" step="0.1" value="${it.per100?.carbs??''}" oninput="updHistPresetMacro(${i},'c100',this.value)"></div>
+        <div><div class="input-lbl" style="color:var(--fat)">F/100g</div><input type="number" placeholder="0" min="0" step="0.1" value="${it.per100?.fat??''}" oninput="updHistPresetMacro(${i},'f100',this.value)"></div>
+        <div><div class="input-lbl">amount(g)</div><input type="number" placeholder="—" min="0" step="1" value="${it.amountG??''}" oninput="updHistPresetAmount(${i},this.value)"></div>
+      </div>
+      <div class="preset-calc-row" id="hpcr_${i}">${presetCalcStr(it)}</div>
+    </div>`).join('');
+  updateHistPresetTotal();
+}
+function updHistPresetItem(i,f,v){_historyPresetItems[i][f]=v;updateHistPresetTotal();}
+function updHistPresetMacro(i,f,v){if(!_historyPresetItems[i].per100)_historyPresetItems[i].per100={prot:0,carbs:0,fat:0};const m={p100:'prot',c100:'carbs',f100:'fat'};_historyPresetItems[i].per100[m[f]]=parseFloat(v)||0;recalcHistPresetItem(i);}
+function updHistPresetAmount(i,v){_historyPresetItems[i].amountG=parseFloat(v)||null;recalcHistPresetItem(i);}
+function recalcHistPresetItem(i){const it=_historyPresetItems[i],hm=it.per100&&(it.per100.prot||it.per100.carbs||it.per100.fat);if(hm&&it.amountG){const sc=scalePer100(it.per100,it.amountG);it.prot=sc.prot;it.carbs=sc.carbs;it.fat=sc.fat;it.cal=calFromMacros(sc.prot,sc.carbs,sc.fat);}const cr=document.getElementById('hpcr_'+i);if(cr)cr.innerHTML=presetCalcStr(it);updateHistPresetTotal();}
+function removeHistPresetItem(i){_historyPresetItems.splice(i,1);renderHistoryPresetEditItems();}
+function addHistoryPresetItem(){_historyPresetItems.push({name:'',cal:0,prot:0,carbs:0,fat:0,amountG:null,per100:null});renderHistoryPresetEditItems();}
+function updateHistPresetTotal(){document.getElementById('history-meal-preset-total').textContent=`total: ${Math.round(_historyPresetItems.reduce((s,it)=>s+(it.cal||0),0))} kcal`;}
+function applyHistoryPreset(){
+  if(_historyPresetMealIdx<0)return;
+  const gid=uid(),mName=db.fuel.savedMeals[_historyPresetMealIdx].name,day=getFuelDay(_dayEditKey);
+  _historyPresetItems.forEach(it=>{if(!it.name.trim())return;day.items.push({...it,mealGroup:{name:mName,groupId:gid},ts:Date.now()});});
+  saveDB();closeModal('modal-history-meal');openDayEdit(_dayEditKey);renderFuelHistory();showToast(`"${mName}" added`);
+}
 let _dayEditKey='';
 function openDayEdit(key){_dayEditKey=key;const d=new Date(key+'T00:00:00');document.getElementById('day-edit-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'short',month:'long',day:'numeric'});renderDayEditList();openModal('modal-day-edit');}
 function renderDayEditList(){
@@ -1134,15 +1245,38 @@ function renderDayEditList(){
   document.getElementById('day-edit-totals').innerHTML=`<span style="color:${tot.cal>goal?'var(--red)':'var(--accent)'};">${Math.round(tot.cal).toLocaleString()} kcal</span> · P:${Math.round(tot.prot)}g C:${Math.round(tot.carbs)}g F:${Math.round(tot.fat)}g`;
   const list=document.getElementById('day-edit-list');
   if(!items.length){list.innerHTML='<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:13px;">no items — tap + add item</div>';return;}
-  list.innerHTML=items.map((it,i)=>`<div class="day-edit-food-item"><div style="flex:1;"><div style="font-size:13px;">${escHtml(it.name)}${it.mealGroup?` <span style="font-size:10px;color:var(--muted);">(${escHtml(it.mealGroup.name)})</span>`:''}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div style="font-size:13px;color:var(--accent);font-weight:500;margin-right:8px;">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${i})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${i})">×</button></div>`).join('');
+  // Group meals like today view
+  const groups=[],gMap={};
+  items.forEach((it,i)=>{const gid=it.mealGroup?.groupId||null;if(gid){if(!gMap[gid]){gMap[gid]={type:'meal',name:it.mealGroup.name,gid,indices:[]};groups.push(gMap[gid]);}gMap[gid].indices.push(i);}else groups.push({type:'solo',idx:i});});
+  list.innerHTML=groups.map(g=>{
+    if(g.type==='solo'){const it=items[g.idx];return`<div class="day-edit-food-item"><div style="flex:1;"><div style="font-size:13px;">${escHtml(it.name)}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div style="font-size:13px;color:var(--accent);font-weight:500;margin-right:8px;">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${g.idx})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${g.idx})">×</button></div>`;}
+    const gc=g.indices.reduce((s,i)=>s+(items[i].cal||0),0);const eid='dedit_grp_'+g.gid;
+    return`<div class="meal-group" style="margin-bottom:4px;"><div class="meal-group-header" onclick="toggleGroup('${eid}')"><span class="meal-group-icon">⚡</span><span class="meal-group-name">${escHtml(g.name)}</span><span class="meal-group-cal">${Math.round(gc)} kcal</span><button class="meal-group-del" onclick="event.stopPropagation();delPastMealGroup('${_dayEditKey}','${g.gid}')">×</button><span class="meal-group-chevron" id="chev_${eid}">›</span></div><div class="meal-group-items hidden" id="${eid}">${g.indices.map(i=>{const it=items[i];return`<div class="food-item"><div style="flex:1"><div class="food-name">${escHtml(it.name)}</div><div class="food-macros">${macroStr(it)}${it.amountG?' · '+it.amountG+'g':''}</div></div><div class="food-cal">${Math.round(it.cal)} kcal</div><button class="food-action" onclick="openPastItemEdit('${_dayEditKey}',${i})">✎</button><button class="food-action del" onclick="delPastItemInline('${_dayEditKey}',${i})">×</button></div>`;}).join('')}</div></div>`;
+  }).join('');
 }
-function addItemToPastDay(){_pastAddMode=true;_pastAddKey=_dayEditKey;_fiOvr=false;['fi-name','fi-cal','fi-amount','fi-prot','fi-carbs','fi-fat'].forEach(id=>document.getElementById(id).value='');document.getElementById('fi-cal').className='';document.getElementById('fi-cal-badge').style.display='none';document.getElementById('fi-banner').innerHTML='enter amount + macros per 100g to auto-calculate calories';document.getElementById('fi-submit-btn').textContent='add to this day';openModal('modal-add-food');setTimeout(()=>document.getElementById('fi-name').focus(),80);}
-function delPastItemInline(key,idx){db.fuel.days[key].items.splice(idx,1);saveDB();renderDayEditList();renderFuelHistory();showToast('item removed');}
+function delPastMealGroup(key,gid){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const gName=db.fuel.days[key].items.find(it=>it.mealGroup?.groupId===gid)?.mealGroup?.name||'meal';
+  db.fuel.days[key].items=db.fuel.days[key].items.filter(it=>it.mealGroup?.groupId!==gid);saveDB();renderDayEditList();renderFuelHistory();
+  pushUndo(snap,'removed "'+gName+'"',s=>{db.fuel.days[key].items=s;saveDB();renderDayEditList();renderFuelHistory();});
+}
+function addItemToPastDay(){_pastAddMode=true;_pastAddKey=_dayEditKey;_fiOvr=false;['fi-name','fi-cal','fi-amount','fi-prot','fi-carbs','fi-fat'].forEach(id=>document.getElementById(id).value='');document.getElementById('fi-cal').className='';document.getElementById('fi-cal-badge').style.display='none';document.getElementById('fi-banner').innerHTML='enter amount + macros per 100g to auto-calculate calories';document.getElementById('fi-submit-btn').textContent='add to this day';closeModal('modal-day-edit');openModal('modal-add-food');setTimeout(()=>document.getElementById('fi-name').focus(),80);}
+function delPastItemInline(key,idx){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[key].items));
+  const name=db.fuel.days[key].items[idx].name;
+  db.fuel.days[key].items.splice(idx,1);saveDB();renderDayEditList();renderFuelHistory();
+  pushUndo(snap,'removed "'+name+'"',s=>{db.fuel.days[key].items=s;saveDB();renderDayEditList();renderFuelHistory();});
+}
 let _piKey='',_piIdx=-1,_piOvr=false;
 function openPastItemEdit(key,idx){_piKey=key;_piIdx=idx;_piOvr=false;const it=db.fuel.days[key].items[idx];document.getElementById('past-item-title').textContent='edit: '+escHtml(it.name);document.getElementById('pi-name').value=it.name||'';document.getElementById('pi-amount').value=it.amountG||'';document.getElementById('pi-cal').value=it.cal?Math.round(it.cal):'';if(it.per100){document.getElementById('pi-prot').value=it.per100.prot||'';document.getElementById('pi-carbs').value=it.per100.carbs||'';document.getElementById('pi-fat').value=it.per100.fat||'';}else{document.getElementById('pi-prot').value='';document.getElementById('pi-carbs').value='';document.getElementById('pi-fat').value='';}document.getElementById('pi-cal-badge').style.display='none';document.getElementById('pi-cal').className='';recalcPastItem(false);openModal('modal-past-item');}
 function recalcPastItem(isC){if(isC){_piOvr=document.getElementById('pi-cal').value!=='';document.getElementById('pi-cal').className=_piOvr?'override-active':'';document.getElementById('pi-cal-badge').style.display=_piOvr?'':'none';}const a=parseFloat(document.getElementById('pi-amount').value)||0,p=parseFloat(document.getElementById('pi-prot').value)||0,c=parseFloat(document.getElementById('pi-carbs').value)||0,f=parseFloat(document.getElementById('pi-fat').value)||0,b=document.getElementById('pi-banner');if((p||c||f)&&a){const sc=scalePer100({prot:p,carbs:c,fat:f},a);const cc=calFromMacros(sc.prot,sc.carbs,sc.fat);if(!_piOvr)document.getElementById('pi-cal').value=Math.round(cc);b.innerHTML=`<b>${Math.round(cc)} kcal</b>`;}else b.innerHTML=(p||c||f)?'enter amount':'enter macros per 100g';}
 function savePastItem(){const name=document.getElementById('pi-name').value.trim(),cal=parseFloat(document.getElementById('pi-cal').value);if(!name||isNaN(cal)||cal<0){showToast('name & calories required');return;}const a=parseFloat(document.getElementById('pi-amount').value)||0,p=parseFloat(document.getElementById('pi-prot').value)||0,c=parseFloat(document.getElementById('pi-carbs').value)||0,f=parseFloat(document.getElementById('pi-fat').value)||0;let prot=0,carbs=0,fat=0;if(a&&(p||c||f)){const sc=scalePer100({prot:p,carbs:c,fat:f},a);prot=sc.prot;carbs=sc.carbs;fat=sc.fat;}const ex=db.fuel.days[_piKey].items[_piIdx];db.fuel.days[_piKey].items[_piIdx]={...ex,name,cal,prot,carbs,fat,amountG:a||null,per100:(p||c||f)?{prot:p,carbs:c,fat:f}:null};saveDB();closeModal('modal-past-item');renderDayEditList();renderFuelHistory();showToast('item updated');}
-function deletePastItem(){db.fuel.days[_piKey].items.splice(_piIdx,1);saveDB();closeModal('modal-past-item');renderDayEditList();renderFuelHistory();showToast('item removed');}
+function deletePastItem(){
+  const snap=JSON.parse(JSON.stringify(db.fuel.days[_piKey].items));
+  const name=db.fuel.days[_piKey].items[_piIdx].name;
+  db.fuel.days[_piKey].items.splice(_piIdx,1);saveDB();closeModal('modal-past-item');renderDayEditList();renderFuelHistory();
+  pushUndo(snap,'removed "'+name+'"',s=>{db.fuel.days[_piKey].items=s;saveDB();renderDayEditList();renderFuelHistory();});
+}
 
 // ══════════════════════════════════════════
 // FUEL SETTINGS
@@ -1234,25 +1368,60 @@ function renderWaterLog(){
   list.innerHTML=[...entries].reverse().map((e,ri)=>{
     const i=entries.length-1-ri;
     const t=new Date(e.ts);const tStr=t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'});
-    return`<div class="water-log-item"><span class="water-log-icon">💧</span><div class="water-log-info"><div class="water-log-amount">${fmtWater(e.amount)}</div><div class="water-log-time">${tStr}${e.note?' · '+escHtml(e.note):''}</div></div><button class="food-action del" onclick="deleteWaterEntry(${i})">×</button></div>`;
+    return`<div class="water-log-item"><span class="water-log-icon">💧</span><div class="water-log-info"><div class="water-log-amount">${fmtWater(e.amount)}</div><div class="water-log-time">${tStr}${e.note?' · '+escHtml(e.note):''}</div></div><button class="food-action" onclick="openEditWaterEntry(todayKey(),${i})">✎</button><button class="food-action del" onclick="deleteWaterEntry(${i})">×</button></div>`;
   }).join('');
 }
 
-function deleteWaterEntry(idx){const day=getWaterDay(todayKey());day.entries.splice(idx,1);saveDB();renderWaterToday();showToast('entry removed');}
+function deleteWaterEntry(idx){
+  const day=getWaterDay(todayKey());
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[idx].amount);
+  day.entries.splice(idx,1);saveDB();renderWaterToday();
+  pushUndo(snap,'removed '+amt,s=>{getWaterDay(todayKey()).entries=s;saveDB();renderWaterToday();});
+}
 
 function openAddWater(){
+  _wdKey='';
   document.getElementById('wi-amount').value='';document.getElementById('wi-note').value='';
   document.getElementById('water-input-lbl').textContent='amount ('+db.water.settings.unit+')';
   openModal('modal-add-water');setTimeout(()=>document.getElementById('wi-amount').focus(),80);
 }
-function addWaterEntry(){
-  const raw=parseFloat(document.getElementById('wi-amount').value);
+
+// ── EDIT WATER ENTRY ──
+let _ewKey='',_ewIdx=-1;
+function openEditWaterEntry(key,idx){
+  _ewKey=key;_ewIdx=idx;
+  const e=getWaterDay(key).entries[idx];
+  const unit=db.water.settings.unit;
+  document.getElementById('edit-water-input-lbl').textContent='amount ('+unit+')';
+  document.getElementById('ewi-amount').value=unit==='L'?(e.amount/1000):e.amount;
+  document.getElementById('ewi-note').value=e.note||'';
+  openModal('modal-edit-water');setTimeout(()=>document.getElementById('ewi-amount').focus(),80);
+}
+function saveEditedWaterEntry(){
+  const raw=parseFloat(document.getElementById('ewi-amount').value);
   if(!raw||raw<=0){showToast('enter a valid amount');return;}
   const unit=db.water.settings.unit;
   const amountMl=unit==='L'?Math.round(raw*1000):Math.round(raw);
-  const note=document.getElementById('wi-note').value.trim();
-  getWaterDay(todayKey()).entries.push({amount:amountMl,note,ts:Date.now()});
-  saveDB();closeModal('modal-add-water');renderWaterToday();showToast(`+${fmtWater(amountMl)} logged`);
+  const note=document.getElementById('ewi-note').value.trim();
+  const isToday=_ewKey===todayKey();
+  const day=getWaterDay(_ewKey);
+  day.entries[_ewIdx]={...day.entries[_ewIdx],amount:amountMl,note};
+  saveDB();closeModal('modal-edit-water');
+  if(isToday)renderWaterToday();
+  else{openWaterDayDetail(_ewKey);renderWaterHistory();}
+  showToast('entry updated');
+}
+function deleteEditedWaterEntry(){
+  const day=getWaterDay(_ewKey);
+  const snap=JSON.parse(JSON.stringify(day.entries));
+  const amt=fmtWater(day.entries[_ewIdx].amount);
+  const isToday=_ewKey===todayKey();
+  const savedKey=_ewKey;
+  day.entries.splice(_ewIdx,1);saveDB();closeModal('modal-edit-water');
+  if(isToday)renderWaterToday();
+  else{openWaterDayDetail(savedKey);renderWaterHistory();}
+  pushUndo(snap,'removed '+amt,s=>{getWaterDay(savedKey).entries=s;saveDB();if(isToday)renderWaterToday();else{openWaterDayDetail(savedKey);renderWaterHistory();}});
 }
 
 // ══════════════════════════════════════════
@@ -1263,14 +1432,15 @@ function waterShiftWeek(d){const n=waterWeekOffset+d;if(n>0)return;waterWeekOffs
 
 function renderWaterHistory(){
   const goal=db.water.settings.dailyGoal||2500;
+  const today=todayKey();
   const allKeys=Object.keys(db.water.days).sort((a,b)=>b.localeCompare(a));
-  // 7-day avg
-  const r7=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return fmtKey(d);});
-  const d7=r7.map(k=>db.water.days[k]?.entries?.length?waterDayTotal(k):null).filter(x=>x!==null);
+  // 7-day avg — full days only (exclude today)
+  const r7=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(7-i));return fmtKey(d);});
+  const d7=r7.filter(k=>k<today).map(k=>db.water.days[k]?.entries?.length?waterDayTotal(k):null).filter(x=>x!==null);
   const avg7=d7.length?Math.round(d7.reduce((a,b)=>a+b,0)/d7.length):null;
-  // 30-day avg
-  const r30=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(29-i));return fmtKey(d);});
-  const d30=r30.map(k=>db.water.days[k]?.entries?.length?waterDayTotal(k):null).filter(x=>x!==null);
+  // 30-day avg — full days only (exclude today)
+  const r30=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(30-i));return fmtKey(d);});
+  const d30=r30.filter(k=>k<today).map(k=>db.water.days[k]?.entries?.length?waterDayTotal(k):null).filter(x=>x!==null);
   const avg30=d30.length?Math.round(d30.reduce((a,b)=>a+b,0)/d30.length):null;
   document.getElementById('w-stat-7').textContent=avg7!==null?fmtWater(avg7):'—';
   document.getElementById('w-stat-30').textContent=avg30!==null?fmtWater(avg30):'—';
@@ -1283,7 +1453,7 @@ function renderWaterHistory(){
   const best=allKeys.reduce((b,k)=>{const c=waterDayTotal(k);return c>b?c:b;},0);
   document.getElementById('w-stat-best').textContent=best?fmtWater(best):'—';
   // Weekly budget (Mon–Sun)
-  const wk=currentWeekDays(),today=todayKey();
+  const wk=currentWeekDays();
   const wkLogged=wk.filter(k=>k<=today&&db.water.days[k]?.entries?.length);
   const wkTotal=wkLogged.reduce((s,k)=>s+waterDayTotal(k),0);
   const wkRemain=goal*7-wkTotal,dow=(new Date().getDay()+6)%7,dLeft=6-dow;
@@ -1308,18 +1478,46 @@ function renderWaterHistory(){
   }).join('');
 }
 
+let _wdKey='';
 function openWaterDayDetail(key){
+  _wdKey=key;
+  const d=new Date(key+'T00:00:00');
+  document.getElementById('water-day-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
+  renderWaterDayContent();
+  openModal('modal-water-day');
+}
+
+function renderWaterDayContent(){
+  const key=_wdKey;
   const day=getWaterDay(key);
   const total=waterDayTotal(key);
   const goal=db.water.settings.dailyGoal||2500;
   const met=total>=goal;
-  const d=new Date(key+'T00:00:00');
-  document.getElementById('water-day-title').textContent=d.toLocaleDateString('en-NZ',{weekday:'long',month:'long',day:'numeric'});
   const creatTaken=day.creatineTaken;
   const creatDose=day.creatineDose||db.water.settings.creatineDose||5;
   const entries=day.entries||[];
+  const bottles=db.water.settings.bottles||[];
+
+  // Build entries list (newest first)
+  const entriesHtml=entries.length
+    ?[...entries].map((e,i)=>({e,i})).reverse().map(({e,i})=>{
+        const t=new Date(e.ts);
+        return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:14px;">💧</span>
+          <div style="flex:1"><div style="font-size:13px;color:var(--water)">${fmtWater(e.amount)}</div>
+          <div style="font-size:10px;color:var(--muted)">${t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}${e.note?' · '+escHtml(e.note):''}</div></div>
+          <button class="food-action" onclick="openEditWaterEntry('${key}',${i})">✎</button>
+        </div>`;
+      }).join('')
+    :'<div style="padding:12px 0;text-align:center;color:var(--muted);font-size:13px;">no entries logged</div>';
+
+  // Bottle chips for past day
+  const bottleChipsHtml=bottles.length
+    ?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">${bottles.map((b,i)=>`<div class="bottle-chip" onclick="quickAddWaterToDay('${key}',${i})" style="font-size:11px;padding:5px 10px;"><span style="font-size:12px;">🫙</span>${escHtml(b.name)} <span style="opacity:.7">(${fmtWater(b.size)})</span></div>`).join('')}</div>`
+    :'';
+
   document.getElementById('water-day-content').innerHTML=`
-    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
       <div style="text-align:center;">
         <div style="font-size:28px;font-weight:800;font-family:'Syne',sans-serif;color:${met?'var(--green)':'var(--water)'}">${fmtWater(total)}</div>
         <div style="font-size:10px;color:var(--muted);">consumed</div>
@@ -1329,17 +1527,69 @@ function openWaterDayDetail(key){
         <div style="font-size:11px;color:var(--muted);margin-top:4px">${Math.round(Math.min(total/goal*100,100))}% of ${fmtWaterGoal()} goal${met?' · ✓ met':''}</div>
       </div>
     </div>
-    <div style="background:${creatTaken?'var(--green-bg)':'var(--surface2)'};border:1px solid ${creatTaken?'#3a6e2e':'var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+
+    <div onclick="toggleHistoryCreatine('${key}')" style="cursor:pointer;background:${creatTaken?'var(--green-bg)':'var(--surface2)'};border:1px solid ${creatTaken?'#3a6e2e':'var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;transition:background .2s,border-color .2s;">
       <span style="font-size:20px;">💊</span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:500;">Creatine</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${creatTaken?`${creatDose}g taken this day`:'not logged this day'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${creatTaken?`${creatDose}g taken this day`:'tap to mark as taken'}</div>
       </div>
-      <div style="font-size:12px;padding:4px 10px;border-radius:12px;background:${creatTaken?'#1a3d14':'var(--surface3)'};color:${creatTaken?'var(--green)':'var(--muted)'};">${creatTaken?'✓ taken':'—'}</div>
+      <div style="width:26px;height:26px;border-radius:50%;border:2px solid ${creatTaken?'var(--green)':'var(--muted)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${creatTaken?'var(--green)':'transparent'};flex-shrink:0;">✓</div>
     </div>
-    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">water log (${entries.length} entries)</div>
-    ${entries.length?[...entries].reverse().map(e=>{const t=new Date(e.ts);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;">💧</span><div style="flex:1"><div style="font-size:13px;color:var(--water)">${fmtWater(e.amount)}</div><div style="font-size:10px;color:var(--muted)">${t.toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}${e.note?' · '+escHtml(e.note):''}</div></div></div>`;}).join(''):'<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:13px;">no entries logged</div>'}`;
-  openModal('modal-water-day');
+
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">quick add</div>
+    ${bottleChipsHtml}
+    <button class="btn btn-ghost btn-sm btn-full" style="margin-bottom:14px;color:var(--water);border-color:var(--water-border);" onclick="openAddWaterToDay('${key}')">+ log custom amount</button>
+
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">water log (${entries.length} entr${entries.length!==1?'ies':'y'})</div>
+    ${entriesHtml}`;
+}
+
+function toggleHistoryCreatine(key){
+  const day=getWaterDay(key);
+  day.creatineTaken=!day.creatineTaken;
+  if(day.creatineTaken)day.creatineDose=db.water.settings.creatineDose||5;
+  else day.creatineDose=null;
+  saveDB();
+  renderWaterDayContent();
+  renderWaterHistory();
+  showToast(day.creatineTaken?'💊 creatine marked as taken':'creatine unmarked');
+}
+
+function quickAddWaterToDay(key,bottleIdx){
+  const b=db.water.settings.bottles[bottleIdx];
+  const day=getWaterDay(key);
+  day.entries.push({amount:b.size,note:b.name,ts:Date.now()});
+  saveDB();
+  renderWaterDayContent();
+  renderWaterHistory();
+  showToast(`+${fmtWater(b.size)} logged`);
+}
+
+function openAddWaterToDay(key){
+  _wdKey=key;
+  document.getElementById('wi-amount').value='';
+  document.getElementById('wi-note').value='';
+  document.getElementById('water-input-lbl').textContent='amount ('+db.water.settings.unit+')';
+  // Mark as "past day add" by closing day modal first, then open water add
+  closeModal('modal-water-day');
+  openModal('modal-add-water');
+  setTimeout(()=>document.getElementById('wi-amount').focus(),80);
+}
+
+// Override addWaterEntry to handle past day adds via _wdKey
+function addWaterEntry(){
+  const raw=parseFloat(document.getElementById('wi-amount').value);
+  if(!raw||raw<=0){showToast('enter a valid amount');return;}
+  const unit=db.water.settings.unit;
+  const amountMl=unit==='L'?Math.round(raw*1000):Math.round(raw);
+  const note=document.getElementById('wi-note').value.trim();
+  const targetKey=_wdKey&&_wdKey!==todayKey()?_wdKey:todayKey();
+  getWaterDay(targetKey).entries.push({amount:amountMl,note,ts:Date.now()});
+  saveDB();closeModal('modal-add-water');
+  if(_wdKey&&_wdKey!==todayKey()){openWaterDayDetail(_wdKey);renderWaterHistory();}
+  else renderWaterToday();
+  showToast(`+${fmtWater(amountMl)} logged`);
 }
 
 function renderWaterBarChart(){
@@ -1382,20 +1632,45 @@ function renderWaterBarChart(){
 // ══════════════════════════════════════════
 // WATER SETTINGS
 // ══════════════════════════════════════════
-function renderWaterSettings(){
-  const s=db.water.settings;
-  document.getElementById('set-water-goal').value=s.dailyGoal||'';
-  document.getElementById('set-water-unit').value=s.unit||'ml';
-  document.getElementById('set-creatine-dose').value=s.creatineDose||'';
-  document.getElementById('water-goal-unit-sub').textContent='in '+(s.unit||'ml');
-  renderBottlePresetsList();
-}
 function saveWaterSettings(){
-  db.water.settings.dailyGoal=parseInt(document.getElementById('set-water-goal').value)||2500;
-  db.water.settings.unit=document.getElementById('set-water-unit').value||'ml';
+  const newUnit=document.getElementById('set-water-unit').value||'ml';
+  const oldUnit=db.water.settings.unit||'ml';
+  const rawGoal=parseFloat(document.getElementById('set-water-goal').value)||null;
+  // Convert entered value to ml for storage
+  let goalMl;
+  if(rawGoal!==null){goalMl=newUnit==='L'?Math.round(rawGoal*1000):Math.round(rawGoal);}
+  else{goalMl=db.water.settings.dailyGoal||2500;}
+  // If unit changed, convert the displayed value in the input
+  if(newUnit!==oldUnit&&rawGoal!==null){
+    const currentMl=oldUnit==='L'?Math.round(rawGoal*1000):Math.round(rawGoal);
+    goalMl=currentMl;
+    document.getElementById('set-water-goal').value=newUnit==='L'?(currentMl/1000):currentMl;
+  }
+  db.water.settings.dailyGoal=goalMl;
+  db.water.settings.unit=newUnit;
   db.water.settings.creatineDose=parseFloat(document.getElementById('set-creatine-dose').value)||5;
   saveDB();showToast('water settings saved');
-  document.getElementById('water-goal-unit-sub').textContent='in '+db.water.settings.unit;
+  document.getElementById('water-goal-unit-sub').textContent='in '+newUnit;
+}
+function renderWaterSettings(){
+  const s=db.water.settings;
+  const unit=s.unit||'ml';
+  const displayGoal=unit==='L'?(s.dailyGoal||2500)/1000:(s.dailyGoal||2500);
+  document.getElementById('set-water-goal').value=displayGoal||'';
+  document.getElementById('set-water-unit').value=unit;
+  document.getElementById('set-creatine-dose').value=s.creatineDose||'';
+  document.getElementById('water-goal-unit-sub').textContent='in '+unit;
+  // When unit dropdown changes, convert displayed value immediately
+  document.getElementById('set-water-unit').onchange=function(){
+    const newU=this.value,oldU=unit==='L'?'L':'ml';
+    const cur=parseFloat(document.getElementById('set-water-goal').value)||0;
+    if(newU!==oldU&&cur){
+      if(newU==='L')document.getElementById('set-water-goal').value=(cur/1000);
+      else document.getElementById('set-water-goal').value=Math.round(cur*1000);
+    }
+    saveWaterSettings();
+  };
+  renderBottlePresetsList();
 }
 function renderBottlePresetsList(){
   const bottles=db.water.settings.bottles||[];
@@ -1437,6 +1712,19 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');docu
 function closeModalOverlay(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 let _tt;
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── UNDO SYSTEM ──
+let _undoStack=null,_undoTimer=null;
+function pushUndo(snapshot,label,onUndo){
+  clearUndoBar();
+  _undoStack={snapshot,label,onUndo};
+  const bar=document.getElementById('undo-bar');
+  document.getElementById('undo-bar-msg').textContent=label;
+  bar.classList.add('show');
+  _undoTimer=setTimeout(()=>clearUndoBar(),5000);
+}
+function clearUndoBar(){clearTimeout(_undoTimer);document.getElementById('undo-bar').classList.remove('show');_undoStack=null;}
+function doUndo(){if(!_undoStack)return;const {snapshot,onUndo}=_undoStack;clearUndoBar();onUndo(snapshot);showToast('undo done ✓');}
 
 // ══════════════════════════════════════════
 // INIT
