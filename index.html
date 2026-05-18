@@ -319,7 +319,7 @@ input::placeholder{color:var(--muted);}
 @keyframes aiFabPulse{0%{transform:scale(1);opacity:.7;}70%{transform:scale(1.5);opacity:0;}100%{transform:scale(1.5);opacity:0;}}
 
 /* AI Modal */
-.ai-modal{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;background:var(--bg);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.ai-modal{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;background:var(--bg);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding-top:env(safe-area-inset-top);}
 .ai-modal.open{transform:translateY(0);}
 .ai-modal-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
 .ai-modal-back{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:20px;line-height:1;display:flex;align-items:center;}
@@ -355,7 +355,7 @@ input::placeholder{color:var(--muted);}
 .ai-qp-chip:active{border-color:#6d5ade;}
 
 /* Input bar */
-.ai-input-bar{display:flex;align-items:flex-end;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+.ai-input-bar{display:flex;align-items:flex-end;gap:10px;padding:10px 14px 20px;padding-bottom:max(20px, calc(14px + env(safe-area-inset-bottom)));border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
 .ai-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:22px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 16px;outline:none;resize:none;max-height:120px;line-height:1.4;transition:border .2s;}
 .ai-input:focus{border-color:#6d5ade;}
 .ai-send{width:40px;height:40px;border-radius:50%;background:#4f46e5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s;}
@@ -519,6 +519,15 @@ input::placeholder{color:var(--muted);}
       <button class="btn btn-ghost btn-full" onclick="exportData()">export as JSON</button>
       <div style="margin-top:8px;"><label for="import-file" class="btn btn-ghost btn-full" style="cursor:pointer;">import JSON</label><input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"></div>
       <button class="btn btn-danger btn-full" style="margin-top:8px;" onclick="confirmClear()">clear all data</button>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div style="font-size:13px;font-weight:500;margin-bottom:4px;color:#a78bfa">✦ AI assistant</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Gemini API key — get yours free at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#a78bfa;">aistudio.google.com</a></div>
+      <div style="position:relative;">
+        <input type="password" id="settings-ai-key" class="ai-key-input" placeholder="AIza… (paste your key here)" autocomplete="off" spellcheck="false" style="padding-right:70px;">
+        <button onclick="saveAIKeyFromSettings()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#4f46e5;color:white;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;">save</button>
+      </div>
+      <div id="settings-ai-key-status" style="font-size:10px;margin-top:6px;color:var(--muted);"></div>
     </div>
   </div>
 
@@ -1415,6 +1424,7 @@ function deletePastItem(){
 function renderFuelSettings(){
   const s=db.fuel.settings;
   ['cal','prot','carb','fat'].forEach(k=>document.getElementById(`set-${k}-goal`).value=s[k+'Goal']||'');
+  renderAIKeyStatus();
   const list=document.getElementById('saved-meals-list');
   if(!db.fuel.savedMeals.length){list.innerHTML='<div class="card"><div class="empty-state" style="padding:24px">no saved meals yet</div></div>';return;}
   list.innerHTML=db.fuel.savedMeals.map((m,i)=>{
@@ -1896,6 +1906,37 @@ function saveAIKey(){
   localStorage.setItem(AI_KEY_STORE,k);
   showAIChat();
 }
+
+function saveAIKeyFromSettings(){
+  const k=(document.getElementById('settings-ai-key').value||'').trim();
+  if(!k){
+    // If blank, allow clearing the key
+    localStorage.removeItem(AI_KEY_STORE);
+    document.getElementById('settings-ai-key-status').textContent='Key cleared.';
+    document.getElementById('settings-ai-key-status').style.color='var(--muted)';
+    showToast('AI key removed');
+    return;
+  }
+  if(!k.startsWith('AIza')){showToast('invalid key — should start with AIza');return;}
+  localStorage.setItem(AI_KEY_STORE,k);
+  document.getElementById('settings-ai-key').value='';
+  document.getElementById('settings-ai-key-status').textContent='✓ Key saved — AI assistant is ready.';
+  document.getElementById('settings-ai-key-status').style.color='var(--green)';
+  showToast('AI key saved ✓');
+}
+
+function renderAIKeyStatus(){
+  const el=document.getElementById('settings-ai-key-status');
+  if(!el)return;
+  const k=localStorage.getItem(AI_KEY_STORE);
+  if(k){
+    el.textContent='✓ Key saved (ending …'+k.slice(-4)+') — tap save with a new key to replace.';
+    el.style.color='var(--green)';
+  } else {
+    el.textContent='No key saved yet.';
+    el.style.color='var(--muted)';
+  }
+}
 function clearAIChat(){aiHistory=[];document.getElementById('ai-messages').innerHTML='';renderAIWelcome();renderAIQuickPrompts();}
 
 // ── Welcome message ──
@@ -1910,19 +1951,27 @@ function renderAIWelcome(){
 }
 
 // ── Quick prompt chips ──
+const AI_QUICK_PROMPTS=[
+  'How many calories do I have left today?',
+  "What's my protein intake today?",
+  'How am I tracking this week?',
+  'Log 500ml water for me',
+  "What's my water streak?",
+];
 function renderAIQuickPrompts(){
-  const prompts=[
-    'How many calories do I have left today?',
-    'What\'s my protein intake today?',
-    'How am I tracking this week?',
-    'Log 500ml water for me',
-    'What\'s my water streak?',
-  ];
-  document.getElementById('ai-quick-prompts').innerHTML=prompts.map(p=>`<div class="ai-qp-chip" onclick="quickPrompt(${JSON.stringify(p)})">${p}</div>`).join('');
-}
-function quickPrompt(text){
-  document.getElementById('ai-input').value=text;
-  sendAIMessage();
+  const wrap=document.getElementById('ai-quick-prompts');
+  wrap.innerHTML='';
+  AI_QUICK_PROMPTS.forEach(p=>{
+    const chip=document.createElement('div');
+    chip.className='ai-qp-chip';
+    chip.textContent=p;
+    chip.addEventListener('click',()=>{
+      document.getElementById('ai-input').value=p;
+      aiInputResize(document.getElementById('ai-input'));
+      sendAIMessage();
+    });
+    wrap.appendChild(chip);
+  });
 }
 
 // ── Message rendering ──
@@ -1941,6 +1990,7 @@ function appendAIMessage(role,text,card=null){
   div.appendChild(ts);
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;
+  // Push user messages to history here so they're recorded before the API call
   if(role==='user') aiHistory.push({role:'user',parts:[{text}]});
   return div;
 }
@@ -2036,27 +2086,37 @@ ${savedMeals}
 4. Make estimates when exact data isn't available — always be transparent about estimating.
 
 ## ACTION FORMAT
-When you want to log something (food or water), include this JSON block EXACTLY at the END of your response, after your conversational reply. Do NOT include it unless you're ready to log after user confirmation.
+When you want to log something, include ONE JSON block at the END of your response. Do NOT include it unless ready to log after confirmation.
 
-For food:
+For food only:
 \`\`\`json
 {"action":"add_food","date":"${today}","items":[{"name":"Food Name","cal":300,"prot":20,"carbs":30,"fat":8,"amountG":150}]}
 \`\`\`
 
-For water:
+For water only:
 \`\`\`json
 {"action":"add_water","date":"${today}","amount":500,"note":"optional note"}
 \`\`\`
 
+For BOTH food and water together (e.g. a cup of tea with sugar — always use this when a drink has both a calorie component AND a water component):
+\`\`\`json
+{"action":"add_both","date":"${today}","items":[{"name":"Sugar in tea","cal":32,"prot":0,"carbs":8,"fat":0,"amountG":16}],"water":{"amount":240,"note":"cup of tea"}}
+\`\`\`
+
+CRITICAL RULES FOR DRINKS:
+- Any drink that contains water (tea, coffee, juice, smoothie, protein shake, etc.) should ALWAYS use "add_both" to log BOTH the calorie content AND the water volume.
+- Water amount should be the actual liquid volume in ml (a standard cup = 240ml, a mug = 300ml, a glass = 250ml, a large bottle = 600ml).
+- For plain water or zero-calorie drinks, use "add_water" only.
+- For solid food with no liquid component, use "add_food" only.
+- For anything else (tea with sugar, coffee with milk, juice, shakes), use "add_both".
+
 For past dates use the date key format "YYYY-MM-DD".
 
-IMPORTANT RULES:
+OTHER RULES:
 - Always be concise and friendly. Use bold for key numbers.
-- When logging food, ALWAYS search for or ask for accurate nutrition info first, THEN propose the action.
+- When logging food, use your knowledge for accurate nutrition info. If estimating, say so clearly.
 - Never log anything without showing the action block for user confirmation.
-- If you're estimating calories, say so clearly.
-- Keep responses focused — don't overwhelm with information.
-- When referencing sources, use markdown links: [Source Name](url)`;
+- Keep responses focused — don't overwhelm with information.`;
 }
 
 // ── Main send function ──
@@ -2069,40 +2129,24 @@ async function sendAIMessage(){
 
   inp.value='';inp.style.height='auto';
   document.getElementById('ai-send').disabled=true;
+
+  // Add user message to UI and history BEFORE API call
   appendAIMessage('user',text);
   showAIThinking();
 
-  // Add to Gemini history format
-  const systemPrompt=buildAISystemPrompt();
-
-  // Build contents array — system as first user turn (Gemini Flash pattern)
-  const contents=[];
-  // Only include history up to last 10 turns to stay under token limit
-  const recentHistory=aiHistory.slice(-20);
-  // We'll add the system context as a preamble in the first message
-  if(recentHistory.length===1){
-    // First message — prepend system
-    contents.push({role:'user',parts:[{text: systemPrompt+'\n\n---\nUser: '+text}]});
-  } else {
-    // Subsequent messages — system already established, use history
-    // Replace first user turn to include system context
-    const withSystem=[
-      {role:'user',parts:[{text:systemPrompt+'\n\n---\nUser: '+recentHistory[0].parts[0].text}]},
-      ...recentHistory.slice(1)
-    ];
-    contents.push(...withSystem);
-  }
+  // Build contents from conversation history only (no hacked system turn)
+  const contents=[...aiHistory];
 
   try{
     const res=await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
       {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
+          system_instruction:{parts:[{text:buildAISystemPrompt()}]},
           contents,
-          generationConfig:{temperature:0.7,maxOutputTokens:1200},
-          tools:[{google_search:{}}]
+          generationConfig:{temperature:0.7,maxOutputTokens:1000}
         })
       }
     );
@@ -2111,8 +2155,12 @@ async function sendAIMessage(){
 
     if(data.error){
       const msg=data.error.message||'API error';
-      const isKeyErr=msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||res.status===400||res.status===403;
-      appendAIMessage('ai','⚠️ '+msg+(isKeyErr?'\n\nTap **clear** then re-open the AI to update your API key.':''));
+      const isKeyErr=data.error.code===400||data.error.code===403||msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid');
+      if(isKeyErr){
+        appendAIMessage('ai','⚠️ API key issue: '+msg+'\n\nTap **clear** above then try re-entering your key, or get a new one at aistudio.google.com/app/apikey');
+      } else {
+        appendAIMessage('ai','⚠️ '+msg+'\n\nIf this keeps happening, try clearing the chat.');
+      }
       document.getElementById('ai-send').disabled=false;
       return;
     }
@@ -2122,28 +2170,37 @@ async function sendAIMessage(){
     if(candidate?.content?.parts){
       candidate.content.parts.forEach(p=>{if(p.text)fullText+=p.text;});
     }
-    if(!fullText){appendAIMessage('ai','I couldn\'t generate a response. Please try again.');document.getElementById('ai-send').disabled=false;return;}
+    if(!fullText){
+      appendAIMessage('ai','I got an empty response. Please try again.');
+      document.getElementById('ai-send').disabled=false;
+      return;
+    }
 
-    // Check for action JSON
+    // Now save model response to history (after successful response)
+    aiHistory.push({role:'model',parts:[{text:fullText}]});
+    // Keep history bounded to last 16 turns (8 pairs)
+    if(aiHistory.length>16) aiHistory=aiHistory.slice(-16);
+
+    // Check for action JSON block
     const actionMatch=fullText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-    let displayText=fullText.replace(/```json[\s\S]*?```/g,'').trim();
+    const displayText=fullText.replace(/```json[\s\S]*?```/g,'').trim();
     let confirmCard=null;
 
     if(actionMatch){
       try{
         const action=JSON.parse(actionMatch[1]);
-        aiPendingAction=action;
-        confirmCard=buildConfirmCard(action);
-      }catch(e){/* ignore parse error */}
+        if(action.action==='add_food'||action.action==='add_water'||action.action==='add_both'){
+          aiPendingAction=action;
+          confirmCard=buildConfirmCard(action);
+        }
+      }catch(e){/* ignore JSON parse errors */}
     }
 
-    // Add to history as model response
-    aiHistory.push({role:'model',parts:[{text:fullText}]});
     appendAIMessage('ai',displayText,confirmCard);
 
   }catch(e){
     removeAIThinking();
-    appendAIMessage('ai','⚠️ Network error: '+e.message+'\n\nCheck your internet connection and try again.');
+    appendAIMessage('ai','⚠️ Network error: '+e.message+'. Check your connection and try again.');
   }
   document.getElementById('ai-send').disabled=false;
 }
@@ -2152,16 +2209,48 @@ async function sendAIMessage(){
 function buildConfirmCard(action){
   const card=document.createElement('div');
   card.className='ai-confirm-card';
+  const date=action.date||todayKey();
+  const isToday=date===todayKey();
+  const dateLabel=isToday?'today':date;
 
-  if(action.action==='add_food'&&action.items?.length){
+  if(action.action==='add_both'){
+    // Combined food + water card
+    const items=action.items||[];
+    const w=action.water||{};
+    const totalCal=items.reduce((s,it)=>s+(it.cal||0),0);
+    const totalProt=items.reduce((s,it)=>s+(it.prot||0),0);
+    const totalCarbs=items.reduce((s,it)=>s+(it.carbs||0),0);
+    const totalFat=items.reduce((s,it)=>s+(it.fat||0),0);
+    const goal=db.fuel.settings.calGoal||2000;
+    const afterCal=fuelDayTotals(date).cal+totalCal;
+    const calRem=goal-afterCal;
+    const waterAmt=w.amount||0;
+    const waterAfter=waterDayTotal(date)+waterAmt;
+    const waterGoal=db.water.settings.dailyGoal||2500;
+    const waterRem=waterGoal-waterAfter;
+
+    card.innerHTML=`<div class="ai-confirm-title">🍽 + 💧 ready to log</div>
+      <div style="font-size:10px;color:#a78bfa;text-transform:uppercase;letter-spacing:.8px;margin:8px 0 4px;">food / calories</div>
+      ${items.map(it=>`<div class="ai-confirm-row"><span class="ai-confirm-lbl">${escHtml(it.name)}${it.amountG?' ('+it.amountG+'g)':''}</span><span class="ai-confirm-val">${Math.round(it.cal)} kcal</span></div>`).join('')}
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">macros</span><span class="ai-confirm-val" style="color:var(--muted)">P:${Math.round(totalProt)}g C:${Math.round(totalCarbs)}g F:${Math.round(totalFat)}g</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">cals after</span><span class="ai-confirm-val" style="color:${calRem<0?'var(--red)':'var(--accent)'}">${calRem>=0?Math.round(calRem)+' kcal left':Math.abs(Math.round(calRem))+' over'}</span></div>
+      <div style="font-size:10px;color:var(--water);text-transform:uppercase;letter-spacing:.8px;margin:10px 0 4px;">water intake</div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">${escHtml(w.note||'water')}</span><span class="ai-confirm-val water">${fmtWater(waterAmt)}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">water after</span><span class="ai-confirm-val water">${fmtWater(waterAfter)} / ${fmtWater(waterGoal)}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${dateLabel}</span></div>
+      <div class="ai-confirm-actions">
+        <button class="ai-confirm-edit" onclick="openAIEditConfirm()">edit</button>
+        <button class="ai-confirm-log" onclick="executeAIAction()">✓ log both</button>
+      </div>`;
+
+  } else if(action.action==='add_food'&&action.items?.length){
     const items=action.items;
     const totalCal=items.reduce((s,it)=>s+(it.cal||0),0);
     const totalProt=items.reduce((s,it)=>s+(it.prot||0),0);
     const totalCarbs=items.reduce((s,it)=>s+(it.carbs||0),0);
     const totalFat=items.reduce((s,it)=>s+(it.fat||0),0);
     const goal=db.fuel.settings.calGoal||2000;
-    const todayTot=fuelDayTotals(action.date||todayKey());
-    const afterCal=todayTot.cal+totalCal;
+    const afterCal=fuelDayTotals(date).cal+totalCal;
     const rem=goal-afterCal;
 
     card.innerHTML=`<div class="ai-confirm-title">🍽 ready to log</div>
@@ -2169,23 +2258,23 @@ function buildConfirmCard(action){
       ${items.length>1?`<div class="ai-confirm-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;"><span class="ai-confirm-lbl"><strong>total</strong></span><span class="ai-confirm-val"><strong>${Math.round(totalCal)} kcal</strong></span></div>`:''}
       <div class="ai-confirm-row"><span class="ai-confirm-lbl">macros</span><span class="ai-confirm-val" style="color:var(--muted)">P:${Math.round(totalProt)}g C:${Math.round(totalCarbs)}g F:${Math.round(totalFat)}g</span></div>
       <div class="ai-confirm-row"><span class="ai-confirm-lbl">after logging</span><span class="ai-confirm-val" style="color:${rem<0?'var(--red)':'var(--accent)'}">${rem>=0?Math.round(rem)+' kcal left':Math.abs(Math.round(rem))+' kcal over'}</span></div>
-      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${action.date||todayKey()}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${dateLabel}</span></div>
       <div class="ai-confirm-actions">
         <button class="ai-confirm-edit" onclick="openAIEditConfirm()">edit</button>
         <button class="ai-confirm-log" onclick="executeAIAction()">✓ log it</button>
       </div>`;
+
   } else if(action.action==='add_water'){
     const amt=action.amount||0;
-    const waterTot=waterDayTotal(action.date||todayKey());
-    const goal=db.water.settings.dailyGoal||2500;
-    const after=waterTot+amt;
-    const rem=goal-after;
+    const waterAfter=waterDayTotal(date)+amt;
+    const waterGoal=db.water.settings.dailyGoal||2500;
+    const rem=waterGoal-waterAfter;
     card.innerHTML=`<div class="ai-confirm-title">💧 ready to log</div>
       <div class="ai-confirm-row"><span class="ai-confirm-lbl">amount</span><span class="ai-confirm-val water">${fmtWater(amt)}</span></div>
       ${action.note?`<div class="ai-confirm-row"><span class="ai-confirm-lbl">note</span><span class="ai-confirm-val" style="color:var(--muted)">${escHtml(action.note)}</span></div>`:''}
-      <div class="ai-confirm-row"><span class="ai-confirm-lbl">after logging</span><span class="ai-confirm-val water">${fmtWater(after)} total</span></div>
-      <div class="ai-confirm-row"><span class="ai-confirm-lbl">${rem>=0?'remaining':'over goal'}</span><span class="ai-confirm-val" style="color:${rem>=0?'var(--water)':'var(--green)'}">${fmtWater(Math.abs(rem))}${rem<0?' over goal':''}</span></div>
-      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${action.date||todayKey()}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">after logging</span><span class="ai-confirm-val water">${fmtWater(waterAfter)} total</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">${rem>=0?'remaining':'over goal'}</span><span class="ai-confirm-val" style="color:${rem>=0?'var(--water)':'var(--green)'}">${fmtWater(Math.abs(rem))}${rem<0?' — goal met!':''}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${dateLabel}</span></div>
       <div class="ai-confirm-actions">
         <button class="ai-confirm-log" style="flex:1;" onclick="executeAIAction()">✓ log it</button>
       </div>`;
@@ -2200,50 +2289,98 @@ function executeAIAction(){
   if(!aiPendingAction)return;
   const a=aiPendingAction;
   aiPendingAction=null;
+  const date=a.date||todayKey();
+  const isToday=date===todayKey();
 
-  if(a.action==='add_food'&&a.items?.length){
-    const key=a.date||todayKey();
+  if(a.action==='add_both'){
+    // Log food items
+    const items=a.items||[];
+    items.forEach(it=>{
+      getFuelDay(date).items.push({
+        name:it.name,cal:it.cal||0,prot:it.prot||0,carbs:it.carbs||0,fat:it.fat||0,
+        amountG:it.amountG||null,per100:null,ts:Date.now()
+      });
+    });
+    // Log water
+    const w=a.water||{};
+    if(w.amount>0){
+      getWaterDay(date).entries.push({amount:w.amount,note:w.note||'via AI',ts:Date.now()});
+    }
+    saveDB();
+    if(isToday){renderFuelToday();renderWaterToday();}
+    else{renderFuelHistory();renderWaterHistory();}
+    const names=items.map(i=>i.name).join(', ');
+    const calRem=Math.round((db.fuel.settings.calGoal||2000)-fuelDayTotals(date).cal);
+    appendAIMessage('ai',`✅ Logged both!\n\n🍽 **${names}** added to fuel.\n💧 **${fmtWater(w.amount)}** added to water — total today: **${fmtWater(waterDayTotal(date))}**.\n\n**${calRem} kcal remaining** today.`);
+    showToast('AI logged food + water');
+
+  } else if(a.action==='add_food'&&a.items?.length){
     a.items.forEach(it=>{
-      getFuelDay(key).items.push({
+      getFuelDay(date).items.push({
         name:it.name,cal:it.cal||0,prot:it.prot||0,carbs:it.carbs||0,fat:it.fat||0,
         amountG:it.amountG||null,per100:null,ts:Date.now()
       });
     });
     saveDB();
-    if(key===todayKey())renderFuelToday();
-    else renderFuelHistory();
+    if(isToday)renderFuelToday();else renderFuelHistory();
     const names=a.items.map(i=>i.name).join(', ');
-    appendAIMessage('ai',`✅ Logged! **${names}** added to ${key===todayKey()?'today':key}.\n\nYou now have **${Math.round((db.fuel.settings.calGoal||2000)-fuelDayTotals(key).cal)} kcal remaining** today.`);
+    appendAIMessage('ai',`✅ Logged! **${names}** added to ${isToday?'today':date}.\n\nYou now have **${Math.round((db.fuel.settings.calGoal||2000)-fuelDayTotals(date).cal)} kcal remaining** today.`);
     showToast('AI logged: '+names);
+
   } else if(a.action==='add_water'){
-    const key=a.date||todayKey();
-    getWaterDay(key).entries.push({amount:a.amount||0,note:a.note||'via AI',ts:Date.now()});
+    getWaterDay(date).entries.push({amount:a.amount||0,note:a.note||'via AI',ts:Date.now()});
     saveDB();
-    if(key===todayKey())renderWaterToday();
-    else renderWaterHistory();
-    appendAIMessage('ai',`✅ Logged **${fmtWater(a.amount)}** water for ${key===todayKey()?'today':key}! Total today: **${fmtWater(waterDayTotal(key))}**.`);
+    if(isToday)renderWaterToday();else renderWaterHistory();
+    appendAIMessage('ai',`✅ Logged **${fmtWater(a.amount)}** water for ${isToday?'today':date}! Total today: **${fmtWater(waterDayTotal(date))}**.`);
     showToast('AI logged: '+fmtWater(a.amount)+' water');
   }
 }
 
+// ── Edit button — pre-fills modal with AI-researched values ──
 function openAIEditConfirm(){
   if(!aiPendingAction)return;
   const a=aiPendingAction;
-  if(a.action==='add_food'&&a.items?.length){
-    // Pre-fill the standard add food modal with first item
+  const date=a.date||todayKey();
+
+  if((a.action==='add_food'||a.action==='add_both')&&(a.items?.length)){
     const it=a.items[0];
-    _fiOvr=false;_pastAddMode=a.date&&a.date!==todayKey();_pastAddKey=a.date||todayKey();
+    _fiOvr=true; // treat cal as an override so it stays filled
+    _pastAddMode=date!==todayKey();
+    _pastAddKey=date;
+
     document.getElementById('fi-name').value=it.name||'';
-    document.getElementById('fi-cal').value=it.cal?Math.round(it.cal):'';
     document.getElementById('fi-amount').value=it.amountG||'';
-    document.getElementById('fi-prot').value='';document.getElementById('fi-carbs').value='';document.getElementById('fi-fat').value='';
-    document.getElementById('fi-cal').className='';document.getElementById('fi-cal-badge').style.display='none';
+    document.getElementById('fi-cal').value=it.cal?Math.round(it.cal):'';
+    // Populate macros — convert from totals back to per-100g if amountG known, else use as-is
+    if(it.per100){
+      document.getElementById('fi-prot').value=it.per100.prot||'';
+      document.getElementById('fi-carbs').value=it.per100.carbs||'';
+      document.getElementById('fi-fat').value=it.per100.fat||'';
+    } else if(it.amountG&&it.amountG>0&&(it.prot||it.carbs||it.fat)){
+      const f=100/it.amountG;
+      document.getElementById('fi-prot').value=it.prot?+(it.prot*f).toFixed(1):'';
+      document.getElementById('fi-carbs').value=it.carbs?+(it.carbs*f).toFixed(1):'';
+      document.getElementById('fi-fat').value=it.fat?+(it.fat*f).toFixed(1):'';
+    } else {
+      // No amountG — store macros directly as per-100g equivalents
+      document.getElementById('fi-prot').value=it.prot||'';
+      document.getElementById('fi-carbs').value=it.carbs||'';
+      document.getElementById('fi-fat').value=it.fat||'';
+    }
+
+    document.getElementById('fi-cal').className='override-active';
+    document.getElementById('fi-cal-badge').style.display='';
     document.getElementById('fi-submit-btn').textContent='add to log';
-    document.getElementById('fi-banner').innerHTML='';
-    closeAI();openModal('modal-add-food');
+    const calVal=it.cal?Math.round(it.cal):0;
+    document.getElementById('fi-banner').innerHTML=`<b>${calVal} kcal</b> · P:<b>${Math.round(it.prot||0)}g</b> C:<b>${Math.round(it.carbs||0)}g</b> F:<b>${Math.round(it.fat||0)}g</b> <span style="color:var(--muted);font-size:10px;">(AI estimated — edit freely)</span>`;
+    closeAI();
+    openModal('modal-add-food');
+
   } else if(a.action==='add_water'){
-    closeAI();openAddWater();
-    document.getElementById('wi-amount').value=a.amount&&db.water.settings.unit==='L'?a.amount/1000:a.amount||'';
+    closeAI();
+    openAddWater();
+    const unit=db.water.settings.unit;
+    document.getElementById('wi-amount').value=unit==='L'?(a.amount||0)/1000:(a.amount||0);
     document.getElementById('wi-note').value=a.note||'';
   }
 }
