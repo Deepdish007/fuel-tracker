@@ -310,6 +310,87 @@ input::placeholder{color:var(--muted);}
 .history-edit-btn:hover{color:var(--accent);}
 @keyframes slideUp{from{transform:translateY(14px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .slide-up{animation:slideUp .22s ease;}
+
+/* ══ AI ASSISTANT ══ */
+.ai-fab{position:fixed;bottom:calc(var(--tab-h) + 16px);right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;cursor:pointer;z-index:140;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(79,70,229,.45);transition:transform .15s,box-shadow .15s;}
+.ai-fab:active{transform:scale(.93);}
+.ai-fab svg{width:24px;height:24px;fill:white;}
+.ai-fab-pulse{position:absolute;inset:0;border-radius:50%;background:rgba(124,58,237,.35);animation:aiFabPulse 2.4s ease-out infinite;}
+@keyframes aiFabPulse{0%{transform:scale(1);opacity:.7;}70%{transform:scale(1.5);opacity:0;}100%{transform:scale(1.5);opacity:0;}}
+
+/* AI Modal */
+.ai-modal{position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;background:var(--bg);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+.ai-modal.open{transform:translateY(0);}
+.ai-modal-header{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface);}
+.ai-modal-back{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:20px;line-height:1;display:flex;align-items:center;}
+.ai-modal-title{flex:1;font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.ai-modal-badge{font-size:10px;background:#1e1a3a;color:#a78bfa;border:1px solid #3d2d7a;padding:3px 8px;border-radius:12px;}
+.ai-modal-clear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:4px 8px;font-family:'DM Mono',monospace;}
+.ai-modal-clear:hover{color:var(--text);}
+
+/* Chat messages */
+.ai-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain;}
+.ai-messages::-webkit-scrollbar{width:3px;}
+.ai-messages::-webkit-scrollbar-thumb{background:var(--border2);}
+.ai-msg{max-width:88%;display:flex;flex-direction:column;gap:4px;}
+.ai-msg.user{align-self:flex-end;align-items:flex-end;}
+.ai-msg.ai{align-self:flex-start;align-items:flex-start;}
+.ai-bubble{padding:10px 14px;border-radius:18px;font-size:13px;line-height:1.55;}
+.ai-msg.user .ai-bubble{background:#2d1f7a;color:#e0d9ff;border-bottom-right-radius:4px;}
+.ai-msg.ai .ai-bubble{background:var(--surface2);color:var(--text);border-bottom-left-radius:4px;border:1px solid var(--border);}
+.ai-bubble a{color:#a78bfa;text-decoration:underline;}
+.ai-bubble strong{color:var(--accent);}
+.ai-bubble em{color:var(--muted);font-style:normal;font-size:11px;}
+.ai-thinking{display:flex;gap:5px;align-items:center;padding:12px 14px;}
+.ai-thinking span{width:7px;height:7px;border-radius:50%;background:#6d5ade;animation:aiDot 1.2s ease-in-out infinite;}
+.ai-thinking span:nth-child(2){animation-delay:.18s;}
+.ai-thinking span:nth-child(3){animation-delay:.36s;}
+@keyframes aiDot{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-5px);opacity:1;}}
+.ai-ts{font-size:10px;color:var(--muted);padding:0 4px;}
+
+/* Quick prompts */
+.ai-quick-prompts{padding:0 16px 10px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;}
+.ai-quick-prompts::-webkit-scrollbar{display:none;}
+.ai-qp-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:7px 13px;font-size:11px;cursor:pointer;white-space:nowrap;color:var(--text);transition:border-color .15s;}
+.ai-qp-chip:active{border-color:#6d5ade;}
+
+/* Input bar */
+.ai-input-bar{display:flex;align-items:flex-end;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+.ai-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:22px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:10px 16px;outline:none;resize:none;max-height:120px;line-height:1.4;transition:border .2s;}
+.ai-input:focus{border-color:#6d5ade;}
+.ai-send{width:40px;height:40px;border-radius:50%;background:#4f46e5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s,transform .1s;}
+.ai-send:active{transform:scale(.92);}
+.ai-send:disabled{background:var(--surface3);cursor:default;}
+.ai-send svg{width:18px;height:18px;fill:white;}
+
+/* Confirmation card */
+.ai-confirm-card{background:var(--surface2);border:1px solid #3d2d7a;border-radius:var(--radius);padding:14px;margin:8px 0;}
+.ai-confirm-title{font-size:11px;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.ai-confirm-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ai-confirm-row:last-of-type{border-bottom:none;}
+.ai-confirm-lbl{color:var(--muted);}
+.ai-confirm-val{color:var(--accent);font-weight:500;}
+.ai-confirm-val.water{color:var(--water);}
+.ai-confirm-actions{display:flex;gap:8px;margin-top:12px;}
+.ai-confirm-edit{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:8px 12px;cursor:pointer;}
+.ai-confirm-log{flex:2;background:#4f46e5;border:none;border-radius:var(--radius-sm);color:white;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;padding:8px 12px;cursor:pointer;}
+.ai-confirm-log:active{transform:scale(.98);}
+
+/* Setup screen */
+.ai-setup{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;gap:16px;}
+.ai-setup-icon{font-size:48px;margin-bottom:4px;}
+.ai-setup-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;}
+.ai-setup-sub{font-size:13px;color:var(--muted);line-height:1.6;max-width:300px;}
+.ai-setup-input-wrap{width:100%;max-width:340px;}
+.ai-setup-steps{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;width:100%;max-width:340px;text-align:left;}
+.ai-setup-step{display:flex;gap:10px;padding:6px 0;font-size:12px;color:var(--muted);line-height:1.5;}
+.ai-setup-step-num{width:20px;height:20px;border-radius:50%;background:#1e1a3a;color:#a78bfa;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.ai-setup-step a{color:#a78bfa;text-decoration:underline;}
+.ai-key-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 14px;width:100%;outline:none;transition:border .2s;}
+.ai-key-input:focus{border-color:#6d5ade;}
+.ai-key-note{font-size:10px;color:var(--muted);margin-top:6px;text-align:left;}
+.btn-ai-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;border:none;border-radius:var(--radius-sm);padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;width:100%;max-width:340px;}
+.btn-ai-primary:active{transform:scale(.98);}
 </style>
 </head>
 <body>
@@ -774,6 +855,56 @@ input::placeholder{color:var(--muted);}
       <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-history-meal');openDayEdit(_dayEditKey)">cancel</button>
       <button class="btn btn-primary" style="flex:2" onclick="applyHistoryPreset()">add to this day</button>
     </div>
+  </div>
+</div>
+
+<!-- ════════ AI ASSISTANT FAB ════════ -->
+<button class="ai-fab" id="ai-fab" onclick="openAI()" title="Ask AI">
+  <div class="ai-fab-pulse"></div>
+  <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>
+</button>
+
+<!-- ════════ AI FULL-SCREEN MODAL ════════ -->
+<div class="ai-modal" id="ai-modal">
+  <div class="ai-modal-header">
+    <button class="ai-modal-back" onclick="closeAI()">‹</button>
+    <div class="ai-modal-title">✦ AI Assistant</div>
+    <div class="ai-modal-badge">Gemini</div>
+    <button class="ai-modal-clear" onclick="clearAIChat()">clear</button>
+  </div>
+  <div class="ai-setup" id="ai-setup">
+    <div class="ai-setup-icon">✦</div>
+    <div class="ai-setup-title">Meet your diet AI</div>
+    <div class="ai-setup-sub">Ask anything about your calories, macros and water. It can search the web for nutrition info and log meals for you — all for free.</div>
+    <div class="ai-setup-steps">
+      <div class="ai-setup-step"><div class="ai-setup-step-num">1</div><div>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a> and sign in with your Google account</div></div>
+      <div class="ai-setup-step"><div class="ai-setup-step-num">2</div><div>Tap <strong style="color:var(--text)">"Create API key"</strong> — free, no credit card needed</div></div>
+      <div class="ai-setup-step"><div class="ai-setup-step-num">3</div><div>Copy the key and paste it below</div></div>
+    </div>
+    <div class="ai-setup-input-wrap">
+      <input class="ai-key-input" id="ai-key-input" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false">
+      <div class="ai-key-note">🔒 Stored only on this device. Only sent to Google's API.</div>
+    </div>
+    <button class="btn-ai-primary" onclick="saveAIKey()">Save &amp; Start Chatting</button>
+  </div>
+  <div id="ai-chat" style="flex:1;flex-direction:column;overflow:hidden;display:none;">
+    <div class="ai-messages" id="ai-messages"></div>
+    <div class="ai-quick-prompts" id="ai-quick-prompts"></div>
+    <div class="ai-input-bar">
+      <textarea class="ai-input" id="ai-input" placeholder="Ask anything… or say 'add a pizza to today'" rows="1" oninput="aiInputResize(this)" onkeydown="aiInputKeydown(event)"></textarea>
+      <button class="ai-send" id="ai-send" onclick="sendAIMessage()">
+        <svg viewBox="0 0 24 24" fill="white" width="18" height="18"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Confirm sheet -->
+<div class="modal-overlay hidden" id="modal-ai-confirm" style="z-index:700;" onclick="closeModalOverlay(event,'modal-ai-confirm')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:#a78bfa">confirm &amp; log</div>
+    <div id="ai-confirm-content"></div>
   </div>
 </div>
 
@@ -1730,6 +1861,392 @@ function doUndo(){if(!_undoStack)return;const {snapshot,onUndo}=_undoStack;clear
 // INIT
 // ══════════════════════════════════════════
 renderFuelToday();
+
+// ══════════════════════════════════════════
+// AI ASSISTANT — GEMINI
+// ══════════════════════════════════════════
+const AI_KEY_STORE='fuel_ai_gemini_key';
+let aiHistory=[];
+let aiPendingAction=null;
+
+// ── Open / close ──
+function openAI(){
+  document.getElementById('ai-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+  const key=localStorage.getItem(AI_KEY_STORE);
+  if(key){showAIChat();}else{showAISetup();}
+}
+function closeAI(){
+  document.getElementById('ai-modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function showAISetup(){
+  document.getElementById('ai-setup').style.display='flex';
+  document.getElementById('ai-chat').style.display='none';
+}
+function showAIChat(){
+  document.getElementById('ai-setup').style.display='none';
+  document.getElementById('ai-chat').style.display='flex';
+  if(!aiHistory.length) renderAIWelcome();
+  renderAIQuickPrompts();
+}
+function saveAIKey(){
+  const k=(document.getElementById('ai-key-input').value||'').trim();
+  if(!k.startsWith('AIza')){showToast('paste a valid Gemini API key (starts with AIza)');return;}
+  localStorage.setItem(AI_KEY_STORE,k);
+  showAIChat();
+}
+function clearAIChat(){aiHistory=[];document.getElementById('ai-messages').innerHTML='';renderAIWelcome();renderAIQuickPrompts();}
+
+// ── Welcome message ──
+function renderAIWelcome(){
+  const goal=db.fuel.settings.calGoal||2000;
+  const today=todayKey();
+  const tot=fuelDayTotals(today);
+  const rem=goal-tot.cal;
+  const waterTot=waterDayTotal(today);
+  const waterGoal=db.water.settings.dailyGoal||2500;
+  appendAIMessage('ai',`Hey! 👋 I'm your Fuel AI.\n\nToday so far: **${Math.round(tot.cal)} kcal** logged — **${rem>=0?Math.round(rem)+' kcal remaining':''+Math.abs(Math.round(rem))+' kcal over goal'}**.\nWater: **${fmtWater(waterTot)}** of ${fmtWater(waterGoal)} goal.\n\nI can answer diet questions, look up nutrition on the web, and log food or water for you. What's on your mind?`);
+}
+
+// ── Quick prompt chips ──
+function renderAIQuickPrompts(){
+  const prompts=[
+    'How many calories do I have left today?',
+    'What\'s my protein intake today?',
+    'How am I tracking this week?',
+    'Log 500ml water for me',
+    'What\'s my water streak?',
+  ];
+  document.getElementById('ai-quick-prompts').innerHTML=prompts.map(p=>`<div class="ai-qp-chip" onclick="quickPrompt(${JSON.stringify(p)})">${p}</div>`).join('');
+}
+function quickPrompt(text){
+  document.getElementById('ai-input').value=text;
+  sendAIMessage();
+}
+
+// ── Message rendering ──
+function appendAIMessage(role,text,card=null){
+  const msgs=document.getElementById('ai-messages');
+  const div=document.createElement('div');
+  div.className='ai-msg '+role;
+  const bubble=document.createElement('div');
+  bubble.className='ai-bubble';
+  bubble.innerHTML=formatAIText(text);
+  div.appendChild(bubble);
+  if(card){div.appendChild(card);}
+  const ts=document.createElement('div');
+  ts.className='ai-ts';
+  ts.textContent=new Date().toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'});
+  div.appendChild(ts);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+  if(role==='user') aiHistory.push({role:'user',parts:[{text}]});
+  return div;
+}
+function formatAIText(t){
+  return t
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/\[(.*?)\]\((https?:\/\/[^\)]+)\)/g,'<a href="$2" target="_blank">$1</a>')
+    .replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank">$1</a>')
+    .replace(/\n/g,'<br>');
+}
+function showAIThinking(){
+  const msgs=document.getElementById('ai-messages');
+  const div=document.createElement('div');
+  div.className='ai-msg ai';div.id='ai-thinking-bubble';
+  const b=document.createElement('div');b.className='ai-bubble';
+  b.innerHTML='<div class="ai-thinking"><span></span><span></span><span></span></div>';
+  div.appendChild(b);msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+function removeAIThinking(){const el=document.getElementById('ai-thinking-bubble');if(el)el.remove();}
+
+// ── Input helpers ──
+function aiInputResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function aiInputKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIMessage();}}
+
+// ── Build system prompt with live app data ──
+function buildAISystemPrompt(){
+  const today=todayKey();
+  const fs=db.fuel.settings;
+  const ws=db.water.settings;
+  const todayFood=getFuelDay(today);
+  const todayWater=getWaterDay(today);
+  const tot=fuelDayTotals(today);
+  const waterTot=waterDayTotal(today);
+
+  // Last 7 days history
+  const hist=Array.from({length:7},(_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-i);const k=fmtKey(d);
+    const t=fuelDayTotals(k);const w=waterDayTotal(k);
+    return`  ${k}: ${Math.round(t.cal)} kcal (P:${Math.round(t.prot)}g C:${Math.round(t.carbs)}g F:${Math.round(t.fat)}g) | water: ${w}ml`;
+  }).join('\n');
+
+  // Saved meals summary
+  const savedMeals=db.fuel.savedMeals.map(m=>{
+    const mc=m.items.reduce((s,it)=>s+(it.cal||0),0);
+    return`  "${m.name}" (${Math.round(mc)} kcal): ${m.items.map(it=>`${it.name} ${Math.round(it.cal)}kcal`).join(', ')}`;
+  }).join('\n')||'  none saved';
+
+  // Today's food items
+  const todayItems=todayFood.items.length
+    ?todayFood.items.map(it=>`  - ${it.name}: ${Math.round(it.cal)} kcal (P:${Math.round(it.prot||0)}g C:${Math.round(it.carbs||0)}g F:${Math.round(it.fat||0)}g)`).join('\n')
+    :'  nothing logged yet';
+
+  // Today's water entries
+  const todayWaterItems=todayWater.entries.length
+    ?todayWater.entries.map(e=>`  - ${e.note||'water'}: ${e.amount}ml at ${new Date(e.ts).toLocaleTimeString('en-NZ',{hour:'numeric',minute:'2-digit'})}`).join('\n')
+    :'  nothing logged yet';
+
+  return `You are a friendly, knowledgeable diet and hydration AI assistant embedded in the "Fuel & Water Tracker" app.
+The user is based in New Zealand. Today's date is ${today}.
+
+## USER GOALS
+- Daily calorie goal: ${fs.calGoal||2000} kcal
+- Protein goal: ${fs.protGoal||150}g/day
+- Carbs goal: ${fs.carbGoal||250}g/day  
+- Fat goal: ${fs.fatGoal||65}g/day
+- Daily water goal: ${ws.dailyGoal||2500}ml
+
+## TODAY (${today})
+Calories consumed: ${Math.round(tot.cal)} kcal / ${fs.calGoal||2000} kcal (${Math.round(tot.cal/(fs.calGoal||2000)*100)}%)
+Remaining: ${Math.round((fs.calGoal||2000)-tot.cal)} kcal
+Macros today: P:${Math.round(tot.prot)}g C:${Math.round(tot.carbs)}g F:${Math.round(tot.fat)}g
+Water today: ${waterTot}ml / ${ws.dailyGoal||2500}ml
+Creatine today: ${todayWater.creatineTaken?'taken':'not taken'}
+
+Today's food log:
+${todayItems}
+
+Today's water log:
+${todayWaterItems}
+
+## LAST 7 DAYS
+${hist}
+
+## SAVED MEALS
+${savedMeals}
+
+## YOUR CAPABILITIES
+1. Answer questions about the user's diet, calories, macros, water, and history using the data above.
+2. Search the internet for nutrition information when needed (e.g. restaurant menu items, packaged food, etc). When you find data online, always include a source URL.
+3. Log food or water by responding with a special JSON action block.
+4. Make estimates when exact data isn't available — always be transparent about estimating.
+
+## ACTION FORMAT
+When you want to log something (food or water), include this JSON block EXACTLY at the END of your response, after your conversational reply. Do NOT include it unless you're ready to log after user confirmation.
+
+For food:
+\`\`\`json
+{"action":"add_food","date":"${today}","items":[{"name":"Food Name","cal":300,"prot":20,"carbs":30,"fat":8,"amountG":150}]}
+\`\`\`
+
+For water:
+\`\`\`json
+{"action":"add_water","date":"${today}","amount":500,"note":"optional note"}
+\`\`\`
+
+For past dates use the date key format "YYYY-MM-DD".
+
+IMPORTANT RULES:
+- Always be concise and friendly. Use bold for key numbers.
+- When logging food, ALWAYS search for or ask for accurate nutrition info first, THEN propose the action.
+- Never log anything without showing the action block for user confirmation.
+- If you're estimating calories, say so clearly.
+- Keep responses focused — don't overwhelm with information.
+- When referencing sources, use markdown links: [Source Name](url)`;
+}
+
+// ── Main send function ──
+async function sendAIMessage(){
+  const inp=document.getElementById('ai-input');
+  const text=(inp.value||'').trim();
+  if(!text)return;
+  const key=localStorage.getItem(AI_KEY_STORE);
+  if(!key){showAISetup();return;}
+
+  inp.value='';inp.style.height='auto';
+  document.getElementById('ai-send').disabled=true;
+  appendAIMessage('user',text);
+  showAIThinking();
+
+  // Add to Gemini history format
+  const systemPrompt=buildAISystemPrompt();
+
+  // Build contents array — system as first user turn (Gemini Flash pattern)
+  const contents=[];
+  // Only include history up to last 10 turns to stay under token limit
+  const recentHistory=aiHistory.slice(-20);
+  // We'll add the system context as a preamble in the first message
+  if(recentHistory.length===1){
+    // First message — prepend system
+    contents.push({role:'user',parts:[{text: systemPrompt+'\n\n---\nUser: '+text}]});
+  } else {
+    // Subsequent messages — system already established, use history
+    // Replace first user turn to include system context
+    const withSystem=[
+      {role:'user',parts:[{text:systemPrompt+'\n\n---\nUser: '+recentHistory[0].parts[0].text}]},
+      ...recentHistory.slice(1)
+    ];
+    contents.push(...withSystem);
+  }
+
+  try{
+    const res=await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents,
+          generationConfig:{temperature:0.7,maxOutputTokens:1200},
+          tools:[{google_search:{}}]
+        })
+      }
+    );
+    const data=await res.json();
+    removeAIThinking();
+
+    if(data.error){
+      const msg=data.error.message||'API error';
+      const isKeyErr=msg.toLowerCase().includes('api key')||msg.toLowerCase().includes('invalid')||res.status===400||res.status===403;
+      appendAIMessage('ai','⚠️ '+msg+(isKeyErr?'\n\nTap **clear** then re-open the AI to update your API key.':''));
+      document.getElementById('ai-send').disabled=false;
+      return;
+    }
+
+    const candidate=data.candidates?.[0];
+    let fullText='';
+    if(candidate?.content?.parts){
+      candidate.content.parts.forEach(p=>{if(p.text)fullText+=p.text;});
+    }
+    if(!fullText){appendAIMessage('ai','I couldn\'t generate a response. Please try again.');document.getElementById('ai-send').disabled=false;return;}
+
+    // Check for action JSON
+    const actionMatch=fullText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+    let displayText=fullText.replace(/```json[\s\S]*?```/g,'').trim();
+    let confirmCard=null;
+
+    if(actionMatch){
+      try{
+        const action=JSON.parse(actionMatch[1]);
+        aiPendingAction=action;
+        confirmCard=buildConfirmCard(action);
+      }catch(e){/* ignore parse error */}
+    }
+
+    // Add to history as model response
+    aiHistory.push({role:'model',parts:[{text:fullText}]});
+    appendAIMessage('ai',displayText,confirmCard);
+
+  }catch(e){
+    removeAIThinking();
+    appendAIMessage('ai','⚠️ Network error: '+e.message+'\n\nCheck your internet connection and try again.');
+  }
+  document.getElementById('ai-send').disabled=false;
+}
+
+// ── Confirmation card builder ──
+function buildConfirmCard(action){
+  const card=document.createElement('div');
+  card.className='ai-confirm-card';
+
+  if(action.action==='add_food'&&action.items?.length){
+    const items=action.items;
+    const totalCal=items.reduce((s,it)=>s+(it.cal||0),0);
+    const totalProt=items.reduce((s,it)=>s+(it.prot||0),0);
+    const totalCarbs=items.reduce((s,it)=>s+(it.carbs||0),0);
+    const totalFat=items.reduce((s,it)=>s+(it.fat||0),0);
+    const goal=db.fuel.settings.calGoal||2000;
+    const todayTot=fuelDayTotals(action.date||todayKey());
+    const afterCal=todayTot.cal+totalCal;
+    const rem=goal-afterCal;
+
+    card.innerHTML=`<div class="ai-confirm-title">🍽 ready to log</div>
+      ${items.map(it=>`<div class="ai-confirm-row"><span class="ai-confirm-lbl">${escHtml(it.name)}${it.amountG?' ('+it.amountG+'g)':''}</span><span class="ai-confirm-val">${Math.round(it.cal)} kcal</span></div>`).join('')}
+      ${items.length>1?`<div class="ai-confirm-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;"><span class="ai-confirm-lbl"><strong>total</strong></span><span class="ai-confirm-val"><strong>${Math.round(totalCal)} kcal</strong></span></div>`:''}
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">macros</span><span class="ai-confirm-val" style="color:var(--muted)">P:${Math.round(totalProt)}g C:${Math.round(totalCarbs)}g F:${Math.round(totalFat)}g</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">after logging</span><span class="ai-confirm-val" style="color:${rem<0?'var(--red)':'var(--accent)'}">${rem>=0?Math.round(rem)+' kcal left':Math.abs(Math.round(rem))+' kcal over'}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${action.date||todayKey()}</span></div>
+      <div class="ai-confirm-actions">
+        <button class="ai-confirm-edit" onclick="openAIEditConfirm()">edit</button>
+        <button class="ai-confirm-log" onclick="executeAIAction()">✓ log it</button>
+      </div>`;
+  } else if(action.action==='add_water'){
+    const amt=action.amount||0;
+    const waterTot=waterDayTotal(action.date||todayKey());
+    const goal=db.water.settings.dailyGoal||2500;
+    const after=waterTot+amt;
+    const rem=goal-after;
+    card.innerHTML=`<div class="ai-confirm-title">💧 ready to log</div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">amount</span><span class="ai-confirm-val water">${fmtWater(amt)}</span></div>
+      ${action.note?`<div class="ai-confirm-row"><span class="ai-confirm-lbl">note</span><span class="ai-confirm-val" style="color:var(--muted)">${escHtml(action.note)}</span></div>`:''}
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">after logging</span><span class="ai-confirm-val water">${fmtWater(after)} total</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">${rem>=0?'remaining':'over goal'}</span><span class="ai-confirm-val" style="color:${rem>=0?'var(--water)':'var(--green)'}">${fmtWater(Math.abs(rem))}${rem<0?' over goal':''}</span></div>
+      <div class="ai-confirm-row"><span class="ai-confirm-lbl">date</span><span class="ai-confirm-val" style="color:var(--muted)">${action.date||todayKey()}</span></div>
+      <div class="ai-confirm-actions">
+        <button class="ai-confirm-log" style="flex:1;" onclick="executeAIAction()">✓ log it</button>
+      </div>`;
+  } else {
+    return null;
+  }
+  return card;
+}
+
+// ── Execute the pending action ──
+function executeAIAction(){
+  if(!aiPendingAction)return;
+  const a=aiPendingAction;
+  aiPendingAction=null;
+
+  if(a.action==='add_food'&&a.items?.length){
+    const key=a.date||todayKey();
+    a.items.forEach(it=>{
+      getFuelDay(key).items.push({
+        name:it.name,cal:it.cal||0,prot:it.prot||0,carbs:it.carbs||0,fat:it.fat||0,
+        amountG:it.amountG||null,per100:null,ts:Date.now()
+      });
+    });
+    saveDB();
+    if(key===todayKey())renderFuelToday();
+    else renderFuelHistory();
+    const names=a.items.map(i=>i.name).join(', ');
+    appendAIMessage('ai',`✅ Logged! **${names}** added to ${key===todayKey()?'today':key}.\n\nYou now have **${Math.round((db.fuel.settings.calGoal||2000)-fuelDayTotals(key).cal)} kcal remaining** today.`);
+    showToast('AI logged: '+names);
+  } else if(a.action==='add_water'){
+    const key=a.date||todayKey();
+    getWaterDay(key).entries.push({amount:a.amount||0,note:a.note||'via AI',ts:Date.now()});
+    saveDB();
+    if(key===todayKey())renderWaterToday();
+    else renderWaterHistory();
+    appendAIMessage('ai',`✅ Logged **${fmtWater(a.amount)}** water for ${key===todayKey()?'today':key}! Total today: **${fmtWater(waterDayTotal(key))}**.`);
+    showToast('AI logged: '+fmtWater(a.amount)+' water');
+  }
+}
+
+function openAIEditConfirm(){
+  if(!aiPendingAction)return;
+  const a=aiPendingAction;
+  if(a.action==='add_food'&&a.items?.length){
+    // Pre-fill the standard add food modal with first item
+    const it=a.items[0];
+    _fiOvr=false;_pastAddMode=a.date&&a.date!==todayKey();_pastAddKey=a.date||todayKey();
+    document.getElementById('fi-name').value=it.name||'';
+    document.getElementById('fi-cal').value=it.cal?Math.round(it.cal):'';
+    document.getElementById('fi-amount').value=it.amountG||'';
+    document.getElementById('fi-prot').value='';document.getElementById('fi-carbs').value='';document.getElementById('fi-fat').value='';
+    document.getElementById('fi-cal').className='';document.getElementById('fi-cal-badge').style.display='none';
+    document.getElementById('fi-submit-btn').textContent='add to log';
+    document.getElementById('fi-banner').innerHTML='';
+    closeAI();openModal('modal-add-food');
+  } else if(a.action==='add_water'){
+    closeAI();openAddWater();
+    document.getElementById('wi-amount').value=a.amount&&db.water.settings.unit==='L'?a.amount/1000:a.amount||'';
+    document.getElementById('wi-note').value=a.note||'';
+  }
+}
 </script>
 </body>
 </html>
